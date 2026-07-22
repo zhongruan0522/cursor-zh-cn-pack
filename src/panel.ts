@@ -22,7 +22,7 @@ interface ManagerState {
 }
 
 interface WebviewMessage {
-  readonly command: 'autoLocate' | 'chooseRoot' | 'rescan' | 'applyPatch' | 'cleanRuntimeState' | 'unapplyPatch' | 'restoreWorkbenchBackup' | 'restoreNlsBackup' | 'shutdownCursor' | 'restartCursor';
+  readonly command: 'oneClick' | 'autoLocate' | 'chooseRoot' | 'rescan' | 'applyPatch' | 'cleanRuntimeState' | 'unapplyPatch' | 'restoreWorkbenchBackup' | 'restoreNlsBackup' | 'shutdownCursor' | 'restartCursor';
   readonly backupPath?: string;
 }
 
@@ -103,6 +103,9 @@ export class ManagerPanel {
   private async handleMessage(message: WebviewMessage): Promise<void> {
     try {
       switch (message.command) {
+        case 'oneClick':
+          await this.oneClick();
+          break;
         case 'autoLocate':
           await this.autoLocate();
           break;
@@ -157,6 +160,39 @@ export class ManagerPanel {
         this.updateState({ cursorRoot: undefined, install: undefined, patch: undefined, nlsPatch: undefined, runtimeState: undefined });
         await reportProgress(progress, { message: '未配置 Cursor 安装目录', percent: 100 });
       }
+    });
+  }
+
+  private async oneClick(): Promise<void> {
+    await this.runOperation('一键汉化', async progress => {
+      // 第 1 步：自动识别安装目录（0%–18%）
+      await this.autoLocateCore(createScopedProgress(progress, 0, 18, '识别安装目录'));
+      if (!this.state.install?.valid) {
+        await reportProgress(progress, { message: '未识别到 Cursor 安装目录，已停止。', percent: 100 });
+        this.log('一键汉化已停止：未识别到 Cursor 安装目录。');
+        return;
+      }
+
+      // 第 2 步：应用补丁（18%–80%）
+      const allowed = vscode.workspace.getConfiguration('cursorZhCn').get<boolean>('enableWorkbenchPatch', true);
+      if (!allowed) {
+        throw new Error('配置 cursorZhCn.enableWorkbenchPatch 已禁用，未执行补丁。');
+      }
+
+      const result = await applyWorkbenchPatch(this.state.install.root, this.context, createScopedProgress(progress, 18, 58, 'Workbench 补丁'));
+      const nlsResult = await applyNlsMessagePatch(this.state.install.root, this.context, createScopedProgress(progress, 58, 78, 'NLS 消息表补丁'));
+      const runtimeState = await scanRuntimeState(createScopedProgress(progress, 78, 80, '扫描运行时状态库'));
+      this.updateState({ patch: result.after, nlsPatch: nlsResult.after, runtimeState });
+      this.log(`Workbench 补丁：本次写入 ${result.appliedRuleIds.length} 项/${result.appliedOccurrences} 处。`);
+      this.log(`NLS 消息表补丁：本次写入 ${nlsResult.appliedRuleIds.length} 项/${nlsResult.appliedOccurrences} 处。`);
+
+      // 第 3 步：重启并清理（80%–100%）
+      await reportProgress(progress, { message: '准备重启并清理 Cursor', percent: 82 });
+      const restartResult = await launchCursorRestartHelper(this.state.install.root, this.context, { cleanRuntimeState: true }, createScopedProgress(progress, 82, 100, '重启并清理'));
+      this.log(`独立助手已启动，Cursor 即将关闭并重启: ${restartResult.executablePath}`);
+      this.log(`助手日志: ${restartResult.logPath}`);
+      await reportProgress(progress, { message: '一键汉化完成，Cursor 正在重启', percent: 100 });
+      void vscode.window.showInformationMessage('一键汉化完成：Cursor 即将关闭、清理运行时状态、重建语言包缓存并重新启动。');
     });
   }
 
@@ -474,209 +510,236 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cursor 汉化管理器</title>
   <style>
+    /* 主题变量：精简 / 白底 / 发丝线 / 黑红配色，全部跟随 VS Code 主题 */
     :root {
-      --surface: color-mix(in srgb, var(--vscode-editor-background) 90%, var(--vscode-button-background));
-      --surface-strong: color-mix(in srgb, var(--vscode-editor-background) 80%, var(--vscode-button-background));
-      --border: color-mix(in srgb, var(--vscode-panel-border) 84%, var(--vscode-foreground));
+      --bg: var(--vscode-editor-background);
+      --bg-sub: color-mix(in srgb, var(--vscode-editor-background) 96%, var(--vscode-foreground));
+      --bg-sunken: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--vscode-foreground));
+      --fg: var(--vscode-foreground);
       --muted: var(--vscode-descriptionForeground);
-      --radius-lg: 18px;
-      --radius-md: 12px;
-      --shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+      --faint: color-mix(in srgb, var(--vscode-descriptionForeground) 60%, transparent);
+      --border: color-mix(in srgb, var(--vscode-foreground) 14%, transparent);
+      --border-strong: color-mix(in srgb, var(--vscode-foreground) 26%, transparent);
+      --accent: var(--vscode-errorForeground);
+      --accent-soft: color-mix(in srgb, var(--vscode-errorForeground) 14%, transparent);
+      --success: var(--vscode-testing-iconPassed);
+      --warn: var(--vscode-testing-iconQueued);
     }
     * { box-sizing: border-box; }
-    body { margin: 0; color: var(--vscode-foreground); background: radial-gradient(circle at top left, color-mix(in srgb, var(--vscode-button-background) 18%, transparent), transparent 34rem), var(--vscode-editor-background); font-family: var(--vscode-font-family); }
-    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px; }
-    .hero { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: stretch; margin-bottom: 18px; }
-    .hero-main, .panel-card, .target-card, .guide, .log-card, .backup-card { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow); }
-    .hero-main { padding: 24px; }
-    .eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px; padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--vscode-button-background) 18%, transparent); color: var(--vscode-button-foreground); font-size: 12px; font-weight: 700; }
-    h1 { margin: 0 0 10px; font-size: 30px; letter-spacing: -0.02em; }
-    h2 { margin: 0; font-size: 18px; }
-    h3 { margin: 0; font-size: 15px; }
+    body { margin: 0; background: var(--bg-sub); color: var(--fg); font-family: var(--vscode-font-family); font-size: 14px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    .mono { font-family: var(--vscode-editor-font-family); font-size: 12.5px; }
+    h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+    h2 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 0; }
+    h3 { margin: 0; font-size: 13px; font-weight: 600; }
     p { margin: 0; }
-    .subtitle { max-width: 780px; color: var(--muted); line-height: 1.65; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-    button { border: none; border-radius: 8px; padding: 9px 13px; color: var(--vscode-button-foreground); background: var(--vscode-button-background); cursor: pointer; font: inherit; font-weight: 650; }
-    button:hover { background: var(--vscode-button-hoverBackground); }
-    button.secondary { color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground); }
-    button.secondary:hover { background: var(--vscode-button-secondaryHoverBackground); }
-    button.ghost { color: var(--vscode-foreground); background: transparent; border: 1px solid var(--border); }
-    button.ghost:hover { background: var(--surface-strong); }
-    button.danger { color: var(--vscode-button-secondaryForeground); background: color-mix(in srgb, var(--vscode-errorForeground) 20%, var(--vscode-button-secondaryBackground)); }
-    button:disabled { opacity: 0.52; cursor: not-allowed; }
-    button.info { width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border-radius: 50%; color: var(--vscode-descriptionForeground); background: transparent; border: 1px solid var(--border); font-weight: 800; }
-    button.info:hover { color: var(--vscode-foreground); background: var(--surface-strong); }
-    .status-board { padding: 18px; display: grid; gap: 12px; }
-    .status-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--vscode-editor-background) 70%, transparent); }
-    .label { color: var(--muted); font-size: 12px; }
-    .value { margin-top: 4px; font-weight: 700; overflow-wrap: anywhere; }
-    .mono { font-family: var(--vscode-editor-font-family); font-size: 12px; }
-    .ok { color: var(--vscode-testing-iconPassed); }
-    .warn { color: var(--vscode-testing-iconQueued); }
-    .bad { color: var(--vscode-testing-iconFailed); }
+
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 24px 56px; }
+    .card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+    .card-pad { padding: 20px; }
+    .stack > * + * { margin-top: 16px; }
+    .gap-top { margin-top: 16px; }
+
+    /* 头部 */
+    .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+    .subtitle { color: var(--muted); max-width: 620px; margin-top: 8px; }
+    .status-mini { text-align: right; min-width: 180px; }
+    .status-mini .label { font-size: 11.5px; color: var(--muted); }
+    .status-mini .value { font-weight: 600; margin-top: 2px; }
+
+    /* 按钮 */
+    button { font: inherit; font-size: 13px; font-weight: 500; border-radius: 6px; padding: 8px 14px; cursor: pointer; border: 1px solid transparent; transition: background .12s, border-color .12s, color .12s; }
+    button.btn { background: var(--bg); border-color: var(--border-strong); color: var(--fg); }
+    button.btn:hover { border-color: var(--fg); }
+    button.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button.btn-primary:hover { opacity: .88; }
+    button.btn-danger { background: transparent; border-color: var(--accent); color: var(--accent); }
+    button.btn-danger:hover { background: var(--accent); color: #fff; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+
+    /* 状态点 */
+    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+    .dot.ok { background: var(--success); }
+    .dot.warn { background: var(--warn); }
+    .dot.bad { background: var(--accent); }
+    .dot.idle { background: var(--faint); }
+    .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+    .ok { color: var(--success); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--accent); }
     .muted { color: var(--muted); }
-    .next-card { padding: 14px; border-radius: var(--radius-md); border: 1px solid color-mix(in srgb, var(--vscode-button-background) 45%, var(--border)); background: color-mix(in srgb, var(--vscode-button-background) 12%, transparent); }
-    .next-title { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 8px; font-weight: 800; }
-    .next-card p { color: var(--muted); line-height: 1.55; }
-    .guide { padding: 18px; margin: 18px 0; }
-    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-    .section-title { display: flex; align-items: center; gap: 8px; }
-    .steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-    .step { position: relative; min-height: 136px; padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-md); background: color-mix(in srgb, var(--vscode-editor-background) 72%, transparent); }
-    .step.active { border-color: color-mix(in srgb, var(--vscode-button-background) 70%, var(--border)); background: color-mix(in srgb, var(--vscode-button-background) 13%, var(--vscode-editor-background)); }
-    .step.done { border-color: color-mix(in srgb, var(--vscode-testing-iconPassed) 55%, var(--border)); }
-    .step-index { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-bottom: 12px; background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); font-weight: 800; }
-    .step-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 800; margin-bottom: 8px; }
-    .step-desc { color: var(--muted); line-height: 1.5; font-size: 12px; }
-    .two-col { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 18px; align-items: start; }
-    .targets { display: grid; gap: 14px; }
-    .target-card { padding: 18px; }
-    .target-head, .backup-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
-    .target-title, .backup-title { display: flex; align-items: center; gap: 8px; }
-    .target-path { margin-top: 8px; color: var(--muted); overflow-wrap: anywhere; }
-    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
-    .metric { padding: 10px; border-radius: 10px; background: color-mix(in srgb, var(--vscode-editor-background) 76%, transparent); }
-    .metric strong { display: block; margin-top: 4px; font-size: 18px; }
-    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 999px; background: var(--vscode-badge-background); color: var(--vscode-badge-foreground); font-size: 12px; font-weight: 800; white-space: nowrap; }
-    .badge.ok { background: color-mix(in srgb, var(--vscode-testing-iconPassed) 20%, var(--vscode-badge-background)); color: var(--vscode-foreground); }
-    .badge.warn { background: color-mix(in srgb, var(--vscode-testing-iconQueued) 24%, var(--vscode-badge-background)); color: var(--vscode-foreground); }
-    .backup-grid { display: grid; gap: 14px; }
-    .backup-card { padding: 16px; box-shadow: none; }
-    .backup-select { width: 100%; margin-top: 8px; padding: 8px 10px; color: var(--vscode-dropdown-foreground); background: var(--vscode-dropdown-background); border: 1px solid var(--vscode-dropdown-border); border-radius: 8px; }
-    .backup-detail { min-height: 42px; margin-top: 9px; color: var(--muted); overflow-wrap: anywhere; line-height: 1.45; }
-    .backup-action { display: flex; justify-content: flex-end; margin-top: 12px; }
-    .safety { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--vscode-editor-background) 78%, transparent); }
-    .safety ul, .problem-list { margin: 10px 0 0; padding-left: 18px; color: var(--muted); line-height: 1.7; }
-    .progress { margin: 18px 0; border-left: 3px solid var(--vscode-progressBar-background); }
-    .progress-head { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-    .progress-title { font-weight: 800; }
-    .progress-percent { color: var(--muted); }
-    .progress-message { color: var(--muted); overflow-wrap: anywhere; }
-    .progress-track { height: 8px; margin-top: 12px; overflow: hidden; border-radius: 999px; background: var(--vscode-editorWidget-background); }
-    .progress-fill { height: 100%; border-radius: inherit; background: var(--vscode-progressBar-background); transition: width 120ms ease-out; }
-    .progress-count { margin-top: 8px; color: var(--muted); }
-    .panel-card { padding: 16px; margin-top: 18px; }
-    .key-files { display: grid; gap: 8px; margin-top: 10px; }
-    .file-line { padding: 10px; border-radius: 10px; background: color-mix(in srgb, var(--vscode-editor-background) 76%, transparent); overflow-wrap: anywhere; }
-    .log-card { margin-top: 18px; padding: 18px; }
-    .log { max-height: 260px; overflow: auto; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: color-mix(in srgb, var(--vscode-editor-background) 82%, transparent); color: var(--muted); line-height: 1.65; }
-    dialog { width: min(680px, calc(100vw - 48px)); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 0; color: var(--vscode-foreground); background: var(--vscode-editor-background); box-shadow: var(--shadow); }
-    dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
-    .modal-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; padding: 20px; border-bottom: 1px solid var(--border); }
-    .modal-body { padding: 20px; color: var(--muted); line-height: 1.7; }
-    .modal-body ul { padding-left: 20px; }
-    .modal-actions { display: flex; justify-content: flex-end; padding: 0 20px 20px; }
-    .modal-close-x { padding: 4px 9px; border-radius: 8px; }
-    @media (max-width: 980px) { .hero, .two-col { grid-template-columns: 1fr; } .steps { grid-template-columns: 1fr; } }
-    @media (max-width: 700px) { .wrap { padding: 16px; } .metrics { grid-template-columns: 1fr; } .hero-actions { flex-direction: column; } button:not(.info) { width: 100%; } }
+
+    /* 下一步提示 */
+    .next { margin-top: 16px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-sub); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .next .t { font-size: 12px; color: var(--muted); }
+    .next .v { font-weight: 500; margin-top: 2px; }
+
+    /* 区块标题 */
+    .section-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .section-title .left { display: flex; align-items: center; gap: 8px; }
+
+    /* 5 步引导 */
+    .steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; }
+    .step { position: relative; padding-right: 14px; }
+    .step:not(:last-child)::after { content: ""; position: absolute; top: 13px; left: 28px; right: 0; height: 1px; background: var(--border); }
+    .step.done:not(:last-child)::after { background: var(--success); }
+    .step .num { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; background: var(--bg); border: 1px solid var(--border-strong); color: var(--muted); position: relative; z-index: 1; }
+    .step.done .num { background: var(--success); border-color: var(--success); color: #fff; }
+    .step.active .num { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .step .st-title { font-weight: 600; margin-top: 10px; display: flex; align-items: center; gap: 6px; }
+    .step .st-desc { color: var(--muted); font-size: 12px; line-height: 1.5; margin-top: 4px; padding-right: 8px; }
+
+    /* 两列 */
+    .cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+
+    /* 目标卡片 */
+    .target { padding: 18px 20px; }
+    .target + .target { border-top: 1px solid var(--border); }
+    .target-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .target-title { display: flex; align-items: center; gap: 8px; }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 14px; }
+    .metric { padding: 0 12px; }
+    .metric:not(:last-child) { border-right: 1px solid var(--border); }
+    .metric:first-child { padding-left: 0; }
+    .metric .m-label { font-size: 11.5px; color: var(--muted); }
+    .metric .m-value { font-size: 18px; font-weight: 600; margin-top: 2px; letter-spacing: -0.02em; }
+
+    /* 侧栏 */
+    .safety { padding: 16px 20px; }
+    .safety ul, .problem-list { margin: 10px 0 0; padding-left: 16px; color: var(--muted); }
+    .safety li, .problem-list li { margin-bottom: 6px; line-height: 1.55; }
+    .backup { padding: 16px 20px; }
+    .backup + .backup { border-top: 1px solid var(--border); }
+    .backup-head { display: flex; justify-content: space-between; align-items: center; }
+    .backup-title { display: flex; align-items: center; gap: 8px; }
+    .select { width: 100%; margin-top: 10px; padding: 7px 10px; background: var(--bg-sunken); color: var(--fg); border: 1px solid var(--border); border-radius: 6px; font: inherit; font-size: 12.5px; }
+    .backup-detail { min-height: 32px; margin-top: 8px; color: var(--muted); overflow-wrap: anywhere; line-height: 1.5; }
+    .backup-foot { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .unapply { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .unapply .u-desc { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+
+    /* 进度 */
+    .progress { padding: 14px 20px; }
+    .progress-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .progress-title { font-weight: 600; }
+    .track { height: 4px; background: var(--bg-sunken); border-radius: 999px; margin-top: 10px; overflow: hidden; }
+    .fill { height: 100%; background: var(--accent); border-radius: inherit; transition: width 120ms ease-out; }
+    .progress-msg { color: var(--muted); margin-top: 8px; font-size: 12.5px; overflow-wrap: anywhere; }
+    .progress-count { color: var(--muted); margin-top: 6px; font-size: 12px; }
+
+    /* 日志 */
+    .log-box { padding: 16px 20px; }
+    .log { margin-top: 12px; max-height: 240px; overflow: auto; background: var(--bg-sunken); border: 1px solid var(--border); border-radius: 6px; padding: 12px; color: var(--muted); line-height: 1.7; overflow-wrap: anywhere; }
+
+    /* 弹窗 */
+    dialog { width: min(560px, calc(100vw - 48px)); border: 1px solid var(--border); border-radius: 10px; padding: 0; color: var(--fg); background: var(--bg); }
+    dialog::backdrop { background: rgba(0, 0, 0, 0.4); }
+    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+    .modal-lead { color: var(--muted); margin-top: 6px; }
+    .modal-body { padding: 18px 20px; color: var(--muted); line-height: 1.7; }
+    .modal-body ul { padding-left: 18px; }
+    .modal-body li { margin-bottom: 6px; }
+    .modal-foot { display: flex; justify-content: flex-end; padding: 0 20px 18px; }
+
+    @media (max-width: 880px) { .cols { grid-template-columns: 1fr; } .steps { grid-template-columns: repeat(2, 1fr); gap: 18px 8px; } .step:not(:last-child)::after { display: none; } .head { flex-direction: column; } .status-mini { text-align: left; } }
+    @media (max-width: 620px) { .wrap { padding: 16px; } .metrics { grid-template-columns: 1fr; } .metric:not(:last-child) { border-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; } .actions { flex-direction: column; } button:not(.btn-icon) { width: 100%; } }
   </style>
 </head>
 <body>
   <main class="wrap">
-    <section class="hero">
-      <div class="hero-main">
-        <div class="eyebrow">安全补丁模式 · 只处理 Cursor 私有界面</div>
-        <h1>Cursor 汉化管理器</h1>
-        <p class="subtitle">面向新手的一站式管理界面：先识别安装目录，再扫描状态，最后应用补丁。补丁会区分 Workbench 主界面和 NLS 消息表，避免把用户内容、项目文件或配置值误翻译。</p>
-        <div class="hero-actions">
-          <button data-command="autoLocate"${busyAttribute}>一键识别 Cursor</button>
-          <button data-command="rescan" class="secondary"${busyAttribute}>重新扫描状态</button>
-          <button data-command="applyPatch"${busyAttribute}>应用汉化补丁</button>
-          <button data-command="cleanRuntimeState" class="secondary"${busyAttribute}>清理运行时 UI 状态</button>
-          <button data-command="restartCursor" class="danger"${busyAttribute}>一键重启并清理 Cursor</button>
-          <button data-command="shutdownCursor" class="ghost"${busyAttribute}>强制关闭 Cursor</button>
-          <button data-command="chooseRoot" class="ghost"${busyAttribute}>手动选择目录</button>
+    <section class="card card-pad">
+      <div class="head">
+        <div>
+          <h1>Cursor 汉化管理器</h1>
+          <p class="subtitle">一键把 Cursor 界面汉化成简体中文。改动前自动备份，可随时恢复。</p>
         </div>
-      </div>
-      <aside class="status-board hero-main">
-        <div class="status-row">
-          <div>
-            <div class="label">当前状态</div>
-            <div class="value ${overallState.className}">${escapeHtml(overallState.text)}</div>
-          </div>
+        <div class="status-mini">
+          <div class="label">当前状态</div>
+          <div class="value ${overallState.className}"><span class="dot ${overallState.dotClass}"></span>${escapeHtml(overallState.text)}</div>
           ${renderHelpButton('overall')}
         </div>
-        <div class="status-row">
-          <div>
-            <div class="label">Cursor 路径</div>
-            <div class="value mono">${escapeHtml(state.cursorRoot ?? '未识别')}</div>
-          </div>
-          ${renderHelpButton('locate')}
+      </div>
+      <div class="actions">
+        <button class="btn-primary" data-command="oneClick"${busyAttribute}>一键汉化</button>
+        <button class="btn" data-command="autoLocate"${busyAttribute}>一键识别 Cursor</button>
+        <button class="btn" data-command="rescan"${busyAttribute}>重新扫描状态</button>
+        <button class="btn" data-command="applyPatch"${busyAttribute}>应用汉化补丁</button>
+        <button class="btn" data-command="cleanRuntimeState"${busyAttribute}>清理运行时 UI 状态</button>
+        <button class="btn-danger" data-command="restartCursor"${busyAttribute}>一键重启并清理 Cursor</button>
+        <button class="btn" data-command="shutdownCursor"${busyAttribute}>强制关闭 Cursor</button>
+        <button class="btn" data-command="chooseRoot"${busyAttribute}>手动选择目录</button>
+      </div>
+      <div class="next">
+        <div>
+          <div class="t">建议下一步</div>
+          <div class="v">${escapeHtml(nextAction)}</div>
         </div>
-        <div class="next-card">
-          <div class="next-title"><span>建议下一步</span>${renderHelpButton('next-action')}</div>
-          <p>${escapeHtml(nextAction)}</p>
-        </div>
-      </aside>
+        ${renderHelpButton('next-action')}
+      </div>
     </section>
 
     ${renderProgressSection(state.progress)}
 
-    <section class="guide">
-      <div class="section-head">
-        <div class="section-title"><h2>新手引导：按 5 步完成</h2>${renderHelpButton('guide')}</div>
+    <section class="card card-pad gap-top">
+      <div class="section-title">
+        <div class="left"><h2>引导</h2>${renderHelpButton('guide')}</div>
       </div>
       ${renderStepGuide(state)}
     </section>
 
-    <section class="two-col">
-      <div class="targets">
+    <section class="cols gap-top">
+      <div class="card stack">
         ${renderTargetCard({
-          title: 'Workbench / 智能体窗口补丁',
+          title: 'Workbench 补丁',
           helpId: 'workbench-patch',
-          targetName: 'workbench.desktop.main.js + workbench.glass.main.js',
-          filePath: patch?.filePath ?? [install?.workbenchPath, install?.glassWorkbenchPath].filter(Boolean).join('\n'),
           scan: patch,
           patchStatusText
         })}
         ${renderTargetCard({
           title: 'NLS 消息表补丁',
           helpId: 'nls-patch',
-          targetName: 'nls.messages.json',
-          filePath: nlsPatch?.filePath,
           scan: nlsPatch,
           patchStatusText
         })}
         ${renderRuntimeStateCard(runtimeState)}
         ${install && !install.valid ? renderProblems(install.problems) : ''}
-        ${renderKeyFiles(install, patch, nlsPatch)}
       </div>
 
-      <aside>
+      <aside class="card stack">
         <div class="safety">
-          <div class="section-title"><h2>小白安全提示</h2>${renderHelpButton('safety')}</div>
+          <div class="section-title"><div class="left"><h2>安全提示</h2>${renderHelpButton('safety')}</div></div>
           ${renderSafetyList()}
         </div>
-        <div class="backup-grid" style="margin-top: 14px;">
-          ${renderBackupCard({
-            title: 'Workbench 备份恢复',
-            helpId: 'workbench-backup',
-            selectId: 'workbenchBackupSelect',
-            command: 'restoreWorkbenchBackup',
-            backups: patch?.backups ?? [],
-            patchStatusText,
-            busyAttribute
-          })}
-          ${renderBackupCard({
-            title: 'NLS 消息表备份恢复',
-            helpId: 'nls-backup',
-            selectId: 'nlsBackupSelect',
-            command: 'restoreNlsBackup',
-            backups: nlsPatch?.backups ?? [],
-            patchStatusText,
-            busyAttribute
-          })}
-        </div>
-        <div class="hero-actions" style="margin-top: 14px;">
-          <button data-command="unapplyPatch" class="danger"${busyAttribute}>卸载当前补丁</button>
+        ${renderBackupCard({
+          title: 'Workbench 备份恢复',
+          helpId: 'workbench-backup',
+          selectId: 'workbenchBackupSelect',
+          command: 'restoreWorkbenchBackup',
+          backups: patch?.backups ?? [],
+          patchStatusText,
+          busyAttribute
+        })}
+        ${renderBackupCard({
+          title: 'NLS 消息表备份恢复',
+          helpId: 'nls-backup',
+          selectId: 'nlsBackupSelect',
+          command: 'restoreNlsBackup',
+          backups: nlsPatch?.backups ?? [],
+          patchStatusText,
+          busyAttribute
+        })}
+        <div class="unapply">
+          <div>
+            <h3>卸载当前补丁</h3>
+            <div class="u-desc">移除已写入的汉化，操作前自动备份。</div>
+          </div>
+          <button class="btn-danger" data-command="unapplyPatch"${busyAttribute}>卸载补丁</button>
         </div>
       </aside>
     </section>
 
-    <section class="log-card">
-      <div class="section-head">
-        <div class="section-title"><h2>操作日志</h2>${renderHelpButton('logs')}</div>
-      </div>
+    <section class="card log-box gap-top">
+      <div class="section-title"><div class="left"><h2>操作日志</h2>${renderHelpButton('logs')}</div></div>
       <div class="log mono">${state.logs.length ? state.logs.map(escapeHtml).join('<br>') : '暂无日志。执行识别、扫描、应用或恢复后，这里会显示结果摘要。'}</div>
     </section>
   </main>
@@ -685,13 +748,13 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
     <div class="modal-head">
       <div>
         <h2 id="helpTitle">说明</h2>
-        <p id="helpLead" class="muted" style="margin-top: 8px;"></p>
+        <p id="helpLead" class="modal-lead"></p>
       </div>
-      <button id="helpCloseX" class="ghost modal-close-x" aria-label="关闭说明">关闭</button>
+      <button id="helpCloseX" class="btn-icon" aria-label="关闭说明">i</button>
     </div>
     <div id="helpBody" class="modal-body"></div>
-    <div class="modal-actions">
-      <button id="helpClose">我知道了</button>
+    <div class="modal-foot">
+      <button id="helpClose" class="btn-primary">我知道了</button>
     </div>
   </dialog>
 
@@ -746,51 +809,51 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
 }
 
 function renderHelpButton(id: string): string {
-  return `<button class="info" data-help="${escapeHtml(id)}" title="查看详细说明" aria-label="查看详细说明">i</button>`;
+  return `<button class="btn-icon" data-help="${escapeHtml(id)}" title="查看详细说明" aria-label="查看详细说明">i</button>`;
 }
 
-function getOverallState(state: ManagerState): { text: string; className: string } {
+function getOverallState(state: ManagerState): { text: string; className: string; dotClass: string } {
   if (state.progress) {
-    return { text: `正在执行：${state.progress.operation}`, className: 'warn' };
+    return { text: `正在执行：${state.progress.operation}`, className: 'warn', dotClass: 'warn' };
   }
 
   if (!state.install?.valid) {
-    return { text: '等待识别 Cursor 安装目录', className: 'warn' };
+    return { text: '等待识别 Cursor 安装目录', className: 'warn', dotClass: 'warn' };
   }
 
   if (state.patch?.state === 'applied' && state.nlsPatch?.state === 'applied') {
-    return { text: '两个补丁目标均已应用', className: 'ok' };
+    return { text: '两个补丁目标均已应用', className: 'ok', dotClass: 'ok' };
   }
 
   if (state.patch?.state === 'partial' || state.nlsPatch?.state === 'partial') {
-    return { text: '检测到部分应用，需要重新应用或恢复', className: 'warn' };
+    return { text: '检测到部分应用，需要重新应用或恢复', className: 'warn', dotClass: 'warn' };
   }
 
   if (state.patch || state.nlsPatch) {
-    return { text: '已完成扫描，可按需应用补丁', className: '' };
+    return { text: '已完成扫描，可按需应用补丁', className: '', dotClass: 'idle' };
   }
 
-  return { text: '已识别目录，等待扫描状态', className: 'warn' };
+  return { text: '已识别目录，等待扫描状态', className: 'warn', dotClass: 'warn' };
 }
 
 function getNextAction(state: ManagerState, patchStatusText: Record<string, string>): string {
   if (state.progress) {
-    return `请等待「${state.progress.operation}」完成。当前步骤会自动更新状态，不要重复点击按钮。`;
+    return `请等待「${state.progress.operation}」完成，当前步骤会自动更新。`;
   }
 
   if (!state.install?.valid) {
-    return '先点击「一键识别 Cursor」。如果识别失败，再用「手动选择目录」选择 Cursor 安装根目录。';
+    return '新手直接点「一键汉化」，自动跑完全部步骤。';
   }
 
   if (!state.patch || !state.nlsPatch) {
-    return '目录已确认，点击「重新扫描状态」读取 Workbench 与 NLS 消息表的当前补丁状态。';
+    return '目录已确认，点击「重新扫描状态」读取当前补丁状态。';
   }
 
   if (state.patch.state !== 'applied' || state.nlsPatch.state !== 'applied') {
-    return `当前 Workbench 为「${patchStatusText[state.patch.state]}」，NLS 为「${patchStatusText[state.nlsPatch.state]}」。建议点击「应用汉化补丁」，完成后重启 Cursor。`;
+    return `当前 Workbench 为「${patchStatusText[state.patch.state]}」，NLS 为「${patchStatusText[state.nlsPatch.state]}」。建议点击「应用汉化补丁」。`;
   }
 
-  return '补丁已应用。若界面还显示旧文本，请点击「一键重启并清理 Cursor」，让独立助手在 Cursor 退出后清理 state.vscdb、重建 zh-cn 语言包合成缓存并重新启动；如需回退，在右侧选择对应目标的备份恢复。';
+  return '补丁已应用。若界面仍是旧文本，点击「一键重启并清理 Cursor」；如需回退，在右侧选择对应目标的备份恢复。';
 }
 
 function renderStepGuide(state: ManagerState): string {
@@ -799,71 +862,60 @@ function renderStepGuide(state: ManagerState): string {
   const bothApplied = state.patch?.state === 'applied' && state.nlsPatch?.state === 'applied';
   const hasBackup = Boolean((state.patch?.backups.length ?? 0) + (state.nlsPatch?.backups.length ?? 0));
   const steps = [
-    { id: 'locate', title: '识别目录', done: hasInstall, active: !hasInstall, desc: '自动识别 Cursor 安装位置；失败时再手动选择。' },
-    { id: 'scan', title: '扫描状态', done: hasScan, active: hasInstall && !hasScan, desc: '确认两个目标文件当前是原始、已汉化还是部分汉化。' },
-    { id: 'apply', title: '应用补丁', done: bothApplied, active: hasScan && !bothApplied, desc: '写入前自动备份，只修改 Cursor 安装目录内的目标文件。' },
-    { id: 'restart', title: '重启并清理', done: bothApplied, active: bothApplied, desc: '启动独立助手，关闭 Cursor 后清理 state.vscdb、重建语言包缓存并重新打开。' },
-    { id: 'restore', title: '需要时恢复', done: hasBackup, active: false, desc: '恢复时按目标选择备份：Workbench 与 NLS 不混用。' }
+    { id: 'locate', title: '识别目录', done: hasInstall, active: !hasInstall, desc: '自动找到 Cursor 安装位置。' },
+    { id: 'scan', title: '扫描状态', done: hasScan, active: hasInstall && !hasScan, desc: '看看哪些还没汉化。' },
+    { id: 'apply', title: '应用补丁', done: bothApplied, active: hasScan && !bothApplied, desc: '一键写入汉化，自动备份。' },
+    { id: 'restart', title: '重启生效', done: bothApplied, active: bothApplied, desc: '重启 Cursor 看到中文。' },
+    { id: 'restore', title: '需要时恢复', done: hasBackup, active: false, desc: '不满意可随时还原。' }
   ];
 
   return `<div class="steps">${steps.map((step, index) => `<div class="step ${step.done ? 'done' : ''} ${step.active ? 'active' : ''}">
-    <div class="step-index">${index + 1}</div>
-    <div class="step-title"><span>${escapeHtml(step.title)}</span>${renderHelpButton(`step-${step.id}`)}</div>
-    <div class="step-desc">${escapeHtml(step.desc)}</div>
+    <span class="num">${index + 1}</span>
+    <div class="st-title"><span>${escapeHtml(step.title)}</span>${renderHelpButton(`step-${step.id}`)}</div>
+    <div class="st-desc">${escapeHtml(step.desc)}</div>
   </div>`).join('')}</div>`;
 }
 
 function renderTargetCard(input: {
   title: string;
   helpId: string;
-  targetName: string;
-  filePath: string | undefined;
   scan: PatchLikeScanResult | undefined;
   patchStatusText: Record<string, string>;
 }): string {
   const stateText = input.scan ? input.patchStatusText[input.scan.state] : '未扫描';
-  const stateClass = input.scan?.state === 'applied' ? 'ok' : input.scan?.state === 'partial' ? 'warn' : '';
+  const dotClass = input.scan?.state === 'applied' ? 'ok' : input.scan?.state === 'partial' ? 'warn' : 'idle';
 
-  return `<article class="target-card">
+  return `<article class="target">
     <div class="target-head">
-      <div>
-        <div class="target-title"><h2>${escapeHtml(input.title)}</h2>${renderHelpButton(input.helpId)}</div>
-        <div class="target-path mono">目标：${escapeHtml(input.targetName)} · ${escapeHtml(input.filePath ?? '未确认路径').replace(/\n/g, '<br>')}</div>
-      </div>
-      <span class="badge ${stateClass}">${escapeHtml(stateText)}</span>
+      <div class="target-title"><h2>${escapeHtml(input.title)}</h2>${renderHelpButton(input.helpId)}</div>
+      <span class="pill"><span class="dot ${dotClass}"></span>${escapeHtml(stateText)}</span>
     </div>
     <div class="metrics">
-      <div class="metric"><div class="label">已汉化命中</div><strong>${input.scan?.targetHits ?? '-'}</strong></div>
-      <div class="metric"><div class="label">待处理英文</div><strong>${input.scan?.sourceHits ?? '-'}</strong></div>
-      <div class="metric"><div class="label">规则数量</div><strong>${input.scan?.totalRules ?? '-'}</strong></div>
+      <div class="metric"><div class="m-label">已汉化</div><div class="m-value">${input.scan?.targetHits ?? '-'}</div></div>
+      <div class="metric"><div class="m-label">待翻译</div><div class="m-value">${input.scan?.sourceHits ?? '-'}</div></div>
+      <div class="metric"><div class="m-label">规则数</div><div class="m-value">${input.scan?.totalRules ?? '-'}</div></div>
     </div>
-    ${input.scan ? `<div class="target-path mono">SHA-256：${escapeHtml(input.scan.currentHash).replace(/\n/g, '<br>')}</div>` : ''}
   </article>`;
 }
 
 function renderRuntimeStateCard(runtimeState: RuntimeStateScanResult | undefined): string {
   const stateText = runtimeState ? runtimeStateStatusText(runtimeState.state) : '未扫描';
-  const stateClass = runtimeState?.state === 'clean' || runtimeState?.state === 'cleaned' || runtimeState?.state === 'not-found'
+  const dotClass = runtimeState?.state === 'clean' || runtimeState?.state === 'cleaned' || runtimeState?.state === 'not-found'
     ? 'ok'
     : runtimeState?.state === 'dirty' || runtimeState?.state === 'cursor-running'
       ? 'warn'
-      : '';
+      : 'idle';
 
-  return `<article class="target-card">
+  return `<article class="target">
     <div class="target-head">
-      <div>
-        <div class="target-title"><h2>运行时 UI 状态清理</h2>${renderHelpButton('runtime-state')}</div>
-        <div class="target-path mono">目标：state.vscdb · ${escapeHtml(runtimeState?.filePath ?? '未确认路径')}</div>
-      </div>
-      <span class="badge ${stateClass}">${escapeHtml(stateText)}</span>
+      <div class="target-title"><h2>运行时 UI 缓存</h2>${renderHelpButton('runtime-state')}</div>
+      <span class="pill"><span class="dot ${dotClass}"></span>${escapeHtml(stateText)}</span>
     </div>
     <div class="metrics">
-      <div class="metric"><div class="label">命中记录</div><strong>${runtimeState?.matchedRecords ?? '-'}</strong></div>
-      <div class="metric"><div class="label">可清理字段</div><strong>${runtimeState?.matchedFields ?? '-'}</strong></div>
-      <div class="metric"><div class="label">状态库</div><strong>${runtimeState?.exists === undefined ? '-' : runtimeState.exists ? '存在' : '未找到'}</strong></div>
+      <div class="metric"><div class="m-label">命中记录</div><div class="m-value">${runtimeState?.matchedRecords ?? '-'}</div></div>
+      <div class="metric"><div class="m-label">可清理字段</div><div class="m-value">${runtimeState?.matchedFields ?? '-'}</div></div>
+      <div class="metric"><div class="m-label">状态库</div><div class="m-value">${runtimeState?.exists === undefined ? '-' : runtimeState.exists ? '存在' : '未找到'}</div></div>
     </div>
-    <div class="target-path">${escapeHtml(runtimeState?.message ?? '扫描后会显示 state.vscdb 中是否还有持久化 UI 文本缓存。')}</div>
-    ${runtimeState?.matchedKeys.length ? `<div class="target-path mono">命中 Key：${escapeHtml(runtimeState.matchedKeys.join('；'))}</div>` : ''}
   </article>`;
 }
 
@@ -891,55 +943,28 @@ function renderBackupCard(input: {
   busyAttribute: string;
 }): string {
   const selectedBackup = getSelectedBackup(input.backups);
-  return `<article class="backup-card">
+  return `<article class="backup">
     <div class="backup-head">
       <div class="backup-title"><h3>${escapeHtml(input.title)}</h3>${renderHelpButton(input.helpId)}</div>
-      <span class="badge">${input.backups.length} 个备份</span>
+      <span class="pill">${input.backups.length} 个备份</span>
     </div>
-    <select id="${escapeHtml(input.selectId)}" class="backup-select" ${input.backups.length ? '' : 'disabled'}>
+    <select id="${escapeHtml(input.selectId)}" class="select" ${input.backups.length ? '' : 'disabled'}>
       ${renderBackupOptions(input.backups, input.patchStatusText)}
     </select>
     ${selectedBackup ? `<div class="backup-detail mono">${escapeHtml(formatBackupDetail(selectedBackup, input.patchStatusText))}</div>` : '<div class="backup-detail mono">暂无备份记录。应用、卸载或恢复时会自动生成相关备份。</div>'}
-    <div class="backup-action"><button data-command="${input.command}" class="secondary"${input.busyAttribute} ${input.backups.length ? '' : 'disabled'}>恢复此备份</button></div>
+    <div class="backup-foot"><button data-command="${input.command}" class="btn"${input.busyAttribute} ${input.backups.length ? '' : 'disabled'}>恢复此备份</button></div>
   </article>`;
 }
 
 function renderSafetyList(): string {
   return `<ul>
-    <li>应用补丁前会先备份目标文件；卸载和恢复前也会生成安全快照。</li>
-    <li>只修改 Cursor 安装目录内的目标文件，不会修改你的项目源码。</li>
-    <li>规则按稳定上下文匹配，不做裸词全局替换，不翻译用户输入或配置值。</li>
-    <li>Workbench 备份和 NLS 备份必须分开恢复，界面已经按目标隔离。</li>
-    <li>应用、卸载或恢复后，需要重启 Cursor 与智能体窗口才能看到完整效果；可使用顶部的一键重启并清理。</li>
+    <li>改动前自动备份，可随时恢复。</li>
+    <li>只改 Cursor 文件，不碰你的项目代码。</li>
   </ul>`;
 }
 
 function renderProblems(problems: readonly string[]): string {
-  return `<section class="panel-card"><div class="section-title"><h2>路径问题</h2>${renderHelpButton('path-problems')}</div><ul class="problem-list">${problems.map(problem => `<li>${escapeHtml(problem)}</li>`).join('')}</ul></section>`;
-}
-
-function renderKeyFiles(install: CursorInstall | undefined, patch: PatchScanResult | undefined, nlsPatch: NlsMessagePatchScanResult | undefined): string {
-  const paths = [install?.workbenchPath, install?.glassWorkbenchPath].filter((value): value is string => Boolean(value));
-  const workbenchPaths = patch?.filePath ?? (paths.length > 0 ? paths.join('\n') : '未确认');
-
-  return `<section class="panel-card">
-    <div class="section-title"><h2>关键文件</h2>${renderHelpButton('key-files')}</div>
-    <div class="key-files">
-      <div class="file-line mono">Workbench：${escapeHtml(workbenchPaths).replace(/\n/g, '<br>')}</div>
-      <div class="file-line mono">NLS 消息表：${escapeHtml(nlsPatch?.filePath ?? '未确认')}</div>
-      <div class="file-line mono">运行时状态库：${escapeHtml(resolveRuntimeStatePathForDisplay())}</div>
-      <div class="file-line mono">安装根目录：${escapeHtml(install?.root ?? '未确认')}</div>
-    </div>
-  </section>`;
-}
-
-function resolveRuntimeStatePathForDisplay(): string {
-  if (process.platform === 'win32') {
-    const appData = process.env.APPDATA ?? '未确认 APPDATA';
-    return `${appData}\\Cursor\\User\\globalStorage\\state.vscdb`;
-  }
-
-  return 'Cursor/User/globalStorage/state.vscdb';
+  return `<div class="safety"><div class="section-title"><div class="left"><h2>路径问题</h2>${renderHelpButton('path-problems')}</div></div><ul class="problem-list">${problems.map(problem => `<li>${escapeHtml(problem)}</li>`).join('')}</ul></div>`;
 }
 
 function getHelpItems(): Record<string, { title: string; lead: string; points: readonly string[] }> {
@@ -960,14 +985,14 @@ function getHelpItems(): Record<string, { title: string; lead: string; points: r
       points: ['未识别目录时，先识别或手动选择目录。', '已识别但未扫描时，先重新扫描。', '扫描后发现未应用或部分应用时，再应用补丁。', '补丁完成后使用一键重启并清理。']
     },
     guide: {
-      title: '新手引导说明',
+      title: '引导说明',
       lead: '按步骤走即可，不需要理解内部文件结构。',
       points: ['第 1 步确认 Cursor 安装位置。', '第 2 步读取两个目标文件的当前状态。', '第 3 步应用补丁并自动备份。', '第 4 步启动独立助手清理运行时状态并重新打开 Cursor。', '第 5 步仅在需要回退时使用备份恢复。']
     },
     'step-locate': { title: '步骤 1：识别目录', lead: '确认补丁要作用在哪个 Cursor 安装。', points: ['推荐先点一键识别。', '如果电脑里有多个 Cursor 或识别失败，再手动选择。', '目录无效时会显示具体问题。'] },
     'step-scan': { title: '步骤 2：扫描状态', lead: '扫描不会写入文件，只读取状态。', points: ['会同时检查 Workbench 主界面和 NLS 消息表。', '会统计英文源、中文目标和可用备份。', '扫描结果用于判断下一步是否需要应用或恢复。'] },
     'step-apply': { title: '步骤 3：应用补丁', lead: '真正写入汉化内容的步骤。', points: ['写入前会备份目标文件。', '规则按模块和上下文匹配，不做裸词替换。', '如果已经应用过，会尽量保持幂等，不重复破坏文件。'] },
-    'step-restart': { title: '步骤 4：重启并清理', lead: 'Cursor 已加载的界面资源不会自动刷新。', points: ['应用、卸载、恢复后都建议完全退出 Cursor 再打开。', '如果只是关闭窗口但后台进程仍在，可能仍看到旧界面。', '一键重启并清理会启动独立助手：先关闭当前识别安装对应的 Cursor.exe，再清理 state.vscdb UI 缓存，最后重新启动同一个 Cursor.exe。'] },
+    'step-restart': { title: '步骤 4：重启生效', lead: 'Cursor 已加载的界面资源不会自动刷新。', points: ['应用、卸载、恢复后都建议完全退出 Cursor 再打开。', '如果只是关闭窗口但后台进程仍在，可能仍看到旧界面。', '一键重启并清理会启动独立助手：先关闭当前识别安装对应的 Cursor.exe，再清理 state.vscdb UI 缓存，最后重新启动同一个 Cursor.exe。'] },
     'step-restore': { title: '步骤 5：恢复备份', lead: '需要回退时再使用。', points: ['Workbench 备份只恢复 Workbench。', 'NLS 备份只恢复 NLS 消息表。', '恢复前也会生成安全快照，方便再次回退。'] },
     'workbench-patch': {
       title: 'Workbench 主界面补丁',
@@ -985,7 +1010,7 @@ function getHelpItems(): Record<string, { title: string; lead: string; points: r
       points: ['所有写入动作都会尽量先生成备份或安全快照。', '只处理 Cursor 安装目录内明确目标文件。', '不会翻译聊天内容、项目文件、配置值、命令 ID 或内部标识。', '一键重启并清理会启动独立助手接管关闭、清理和重启流程。', '如果 Cursor 升级后文件结构变化，应先扫描再决定是否应用。']
     },
     'runtime-state': {
-      title: '运行时 UI 状态清理',
+      title: '运行时 UI 缓存清理',
       lead: '处理 Cursor 写入 state.vscdb 的 UI 文本缓存。',
       points: ['不会把数据库里的英文替换成中文。', '不再额外创建 state.vscdb 副本，回退依赖 Cursor 自带的 state.vscdb.backup。', '只删除或清空命中完整英文 UI 文案的缓存字段，让 Cursor 下次从已补丁的默认配置重新生成。', '推荐使用「一键重启并清理 Cursor」；独立助手会在 Cursor 退出后再写入数据库，避免扩展宿主中断或运行时覆盖。']
     },
@@ -1008,11 +1033,6 @@ function getHelpItems(): Record<string, { title: string; lead: string; points: r
       title: '路径问题',
       lead: '所选目录未通过 Cursor 安装校验时会出现。',
       points: ['常见原因是选到了项目目录、resources/app 目录或快捷方式目录。', '应选择 Cursor 安装根目录。', '可以重新点击手动选择修正。']
-    },
-    'key-files': {
-      title: '关键文件说明',
-      lead: '这里展示本扩展实际关注的安装目录文件。',
-      points: ['Workbench 文件负责主界面 bundle 内硬编码文本。', 'NLS 消息表负责运行时消息表文本。', '如果某个英文不在这两个目标中，需要继续按安装目录反查来源。']
     }
   };
 }
@@ -1026,14 +1046,14 @@ function renderProgressSection(progress: ManagerProgressState | undefined): stri
     ? `<div class="progress-count mono">当前条数：${progress.current} / ${progress.total}</div>`
     : '';
 
-  return `<section class="section card progress" aria-live="polite">
+  return `<section class="card progress gap-top" aria-live="polite">
     <div class="progress-head">
       <div class="progress-title">${escapeHtml(progress.operation)}</div>
-      <div class="progress-percent mono">${progress.percent}%</div>
+      <div class="mono">${progress.percent}%</div>
     </div>
-    <div class="progress-message">${escapeHtml(progress.message)}</div>
-    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress.percent}">
-      <div class="progress-fill" style="width: ${progress.percent}%"></div>
+    <div class="progress-msg">${escapeHtml(progress.message)}</div>
+    <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress.percent}">
+      <div class="fill" style="width: ${progress.percent}%"></div>
     </div>
     ${count}
   </section>`;
