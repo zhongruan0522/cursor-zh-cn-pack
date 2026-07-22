@@ -11,6 +11,7 @@ node_modules/sql.js/dist/*
 .github
 artifacts
 baselines
+docs
 reports/untranslated-*.json
 reports/workbench-untranslated.*
 package-lock.json
