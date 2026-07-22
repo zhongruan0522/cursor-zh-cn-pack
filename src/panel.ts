@@ -500,7 +500,6 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
   const busyAttribute = state.progress ? ' disabled' : '';
   const nextAction = getNextAction(state, patchStatusText);
   const overallState = getOverallState(state);
-  const helpItems = getHelpItems();
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -631,18 +630,8 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
     .log-box { padding: 16px 20px; }
     .log { margin-top: 12px; max-height: 240px; overflow: auto; background: var(--bg-sunken); border: 1px solid var(--border); border-radius: 6px; padding: 12px; color: var(--muted); line-height: 1.7; overflow-wrap: anywhere; }
 
-    /* 弹窗 */
-    dialog { width: min(560px, calc(100vw - 48px)); border: 1px solid var(--border); border-radius: 10px; padding: 0; color: var(--fg); background: var(--bg); }
-    dialog::backdrop { background: rgba(0, 0, 0, 0.4); }
-    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--border); }
-    .modal-lead { color: var(--muted); margin-top: 6px; }
-    .modal-body { padding: 18px 20px; color: var(--muted); line-height: 1.7; }
-    .modal-body ul { padding-left: 18px; }
-    .modal-body li { margin-bottom: 6px; }
-    .modal-foot { display: flex; justify-content: flex-end; padding: 0 20px 18px; }
-
     @media (max-width: 880px) { .cols { grid-template-columns: 1fr; } .steps { grid-template-columns: repeat(2, 1fr); gap: 18px 8px; } .step:not(:last-child)::after { display: none; } .head { flex-direction: column; } .status-mini { text-align: left; } }
-    @media (max-width: 620px) { .wrap { padding: 16px; } .metrics { grid-template-columns: 1fr; } .metric:not(:last-child) { border-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; } .actions { flex-direction: column; } button:not(.btn-icon) { width: 100%; } }
+    @media (max-width: 620px) { .wrap { padding: 16px; } .metrics { grid-template-columns: 1fr; } .metric:not(:last-child) { border-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; } .actions { flex-direction: column; } button { width: 100%; } }
   </style>
 </head>
 <body>
@@ -656,7 +645,6 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
         <div class="status-mini">
           <div class="label">当前状态</div>
           <div class="value ${overallState.className}"><span class="dot ${overallState.dotClass}"></span>${escapeHtml(overallState.text)}</div>
-          ${renderHelpButton('overall')}
         </div>
       </div>
       <div class="actions">
@@ -674,7 +662,6 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
           <div class="t">建议下一步</div>
           <div class="v">${escapeHtml(nextAction)}</div>
         </div>
-        ${renderHelpButton('next-action')}
       </div>
     </section>
 
@@ -682,7 +669,7 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
 
     <section class="card card-pad gap-top">
       <div class="section-title">
-        <div class="left"><h2>引导</h2>${renderHelpButton('guide')}</div>
+        <div class="left"><h2>引导</h2></div>
       </div>
       ${renderStepGuide(state)}
     </section>
@@ -691,13 +678,11 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
       <div class="card stack">
         ${renderTargetCard({
           title: 'Workbench 补丁',
-          helpId: 'workbench-patch',
           scan: patch,
           patchStatusText
         })}
         ${renderTargetCard({
           title: 'NLS 消息表补丁',
-          helpId: 'nls-patch',
           scan: nlsPatch,
           patchStatusText
         })}
@@ -707,12 +692,11 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
 
       <aside class="card stack">
         <div class="safety">
-          <div class="section-title"><div class="left"><h2>安全提示</h2>${renderHelpButton('safety')}</div></div>
+          <div class="section-title"><div class="left"><h2>安全提示</h2></div></div>
           ${renderSafetyList()}
         </div>
         ${renderBackupCard({
           title: 'Workbench 备份恢复',
-          helpId: 'workbench-backup',
           selectId: 'workbenchBackupSelect',
           command: 'restoreWorkbenchBackup',
           backups: patch?.backups ?? [],
@@ -721,7 +705,6 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
         })}
         ${renderBackupCard({
           title: 'NLS 消息表备份恢复',
-          helpId: 'nls-backup',
           selectId: 'nlsBackupSelect',
           command: 'restoreNlsBackup',
           backups: nlsPatch?.backups ?? [],
@@ -739,33 +722,13 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
     </section>
 
     <section class="card log-box gap-top">
-      <div class="section-title"><div class="left"><h2>操作日志</h2>${renderHelpButton('logs')}</div></div>
+      <div class="section-title"><div class="left"><h2>操作日志</h2></div></div>
       <div class="log mono">${state.logs.length ? state.logs.map(escapeHtml).join('<br>') : '暂无日志。执行识别、扫描、应用或恢复后，这里会显示结果摘要。'}</div>
     </section>
   </main>
 
-  <dialog id="helpDialog">
-    <div class="modal-head">
-      <div>
-        <h2 id="helpTitle">说明</h2>
-        <p id="helpLead" class="modal-lead"></p>
-      </div>
-      <button id="helpCloseX" class="btn-icon" aria-label="关闭说明">i</button>
-    </div>
-    <div id="helpBody" class="modal-body"></div>
-    <div class="modal-foot">
-      <button id="helpClose" class="btn-primary">我知道了</button>
-    </div>
-  </dialog>
-
   <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
-    const helpItems = ${JSON.stringify(helpItems)};
-    const dialog = document.getElementById('helpDialog');
-    const helpTitle = document.getElementById('helpTitle');
-    const helpLead = document.getElementById('helpLead');
-    const helpBody = document.getElementById('helpBody');
-    const closeDialog = () => dialog instanceof HTMLDialogElement ? dialog.close() : undefined;
 
     document.querySelectorAll('button[data-command]').forEach(button => {
       button.addEventListener('click', () => {
@@ -782,34 +745,9 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
         });
       });
     });
-
-    document.querySelectorAll('button[data-help]').forEach(button => {
-      button.addEventListener('click', () => {
-        const item = helpItems[button.dataset.help];
-        if (!item || !(dialog instanceof HTMLDialogElement)) {
-          return;
-        }
-        helpTitle.textContent = item.title;
-        helpLead.textContent = item.lead;
-        helpBody.innerHTML = '<ul>' + item.points.map(point => '<li>' + point + '</li>').join('') + '</ul>';
-        dialog.showModal();
-      });
-    });
-
-    document.getElementById('helpClose')?.addEventListener('click', closeDialog);
-    document.getElementById('helpCloseX')?.addEventListener('click', closeDialog);
-    dialog?.addEventListener('click', event => {
-      if (event.target === dialog) {
-        closeDialog();
-      }
-    });
   </script>
 </body>
 </html>`;
-}
-
-function renderHelpButton(id: string): string {
-  return `<button class="btn-icon" data-help="${escapeHtml(id)}" title="查看详细说明" aria-label="查看详细说明">i</button>`;
 }
 
 function getOverallState(state: ManagerState): { text: string; className: string; dotClass: string } {
@@ -871,14 +809,13 @@ function renderStepGuide(state: ManagerState): string {
 
   return `<div class="steps">${steps.map((step, index) => `<div class="step ${step.done ? 'done' : ''} ${step.active ? 'active' : ''}">
     <span class="num">${index + 1}</span>
-    <div class="st-title"><span>${escapeHtml(step.title)}</span>${renderHelpButton(`step-${step.id}`)}</div>
+    <div class="st-title"><span>${escapeHtml(step.title)}</span></div>
     <div class="st-desc">${escapeHtml(step.desc)}</div>
   </div>`).join('')}</div>`;
 }
 
 function renderTargetCard(input: {
   title: string;
-  helpId: string;
   scan: PatchLikeScanResult | undefined;
   patchStatusText: Record<string, string>;
 }): string {
@@ -887,7 +824,7 @@ function renderTargetCard(input: {
 
   return `<article class="target">
     <div class="target-head">
-      <div class="target-title"><h2>${escapeHtml(input.title)}</h2>${renderHelpButton(input.helpId)}</div>
+      <div class="target-title"><h2>${escapeHtml(input.title)}</h2></div>
       <span class="pill"><span class="dot ${dotClass}"></span>${escapeHtml(stateText)}</span>
     </div>
     <div class="metrics">
@@ -908,7 +845,7 @@ function renderRuntimeStateCard(runtimeState: RuntimeStateScanResult | undefined
 
   return `<article class="target">
     <div class="target-head">
-      <div class="target-title"><h2>运行时 UI 缓存</h2>${renderHelpButton('runtime-state')}</div>
+      <div class="target-title"><h2>运行时 UI 缓存</h2></div>
       <span class="pill"><span class="dot ${dotClass}"></span>${escapeHtml(stateText)}</span>
     </div>
     <div class="metrics">
@@ -935,7 +872,6 @@ type RuntimeStateCleanStateLike = RuntimeStateScanResult['state'];
 
 function renderBackupCard(input: {
   title: string;
-  helpId: string;
   selectId: string;
   command: 'restoreWorkbenchBackup' | 'restoreNlsBackup';
   backups: readonly PatchBackupInfo[];
@@ -945,7 +881,7 @@ function renderBackupCard(input: {
   const selectedBackup = getSelectedBackup(input.backups);
   return `<article class="backup">
     <div class="backup-head">
-      <div class="backup-title"><h3>${escapeHtml(input.title)}</h3>${renderHelpButton(input.helpId)}</div>
+      <div class="backup-title"><h3>${escapeHtml(input.title)}</h3></div>
       <span class="pill">${input.backups.length} 个备份</span>
     </div>
     <select id="${escapeHtml(input.selectId)}" class="select" ${input.backups.length ? '' : 'disabled'}>
@@ -964,77 +900,7 @@ function renderSafetyList(): string {
 }
 
 function renderProblems(problems: readonly string[]): string {
-  return `<div class="safety"><div class="section-title"><div class="left"><h2>路径问题</h2>${renderHelpButton('path-problems')}</div></div><ul class="problem-list">${problems.map(problem => `<li>${escapeHtml(problem)}</li>`).join('')}</ul></div>`;
-}
-
-function getHelpItems(): Record<string, { title: string; lead: string; points: readonly string[] }> {
-  return {
-    overall: {
-      title: '当前状态怎么看',
-      lead: '这里把目录、扫描、补丁和正在执行的操作合并成一个总览。',
-      points: ['等待识别：还没有确认 Cursor 安装目录。', '已完成扫描：可以安全判断是否需要应用补丁。', '两个补丁目标均已应用：Workbench 与 NLS 消息表都已写入汉化。', '部分应用：通常是升级、手动修改或旧补丁残留导致，可以重新应用或从备份恢复。']
-    },
-    locate: {
-      title: '识别 Cursor 安装目录',
-      lead: '补丁必须写入 Cursor 安装目录，而不是你的项目目录。',
-      points: ['一键识别会优先查找常见安装位置和已保存配置。', '手动选择时请选择 Cursor 的安装根目录，例如包含 resources/app 的目录。', '本扩展不会扫描或修改你的工作区项目文件。']
-    },
-    'next-action': {
-      title: '建议下一步',
-      lead: '这里会根据当前状态给出最保守的下一步。',
-      points: ['未识别目录时，先识别或手动选择目录。', '已识别但未扫描时，先重新扫描。', '扫描后发现未应用或部分应用时，再应用补丁。', '补丁完成后使用一键重启并清理。']
-    },
-    guide: {
-      title: '引导说明',
-      lead: '按步骤走即可，不需要理解内部文件结构。',
-      points: ['第 1 步确认 Cursor 安装位置。', '第 2 步读取两个目标文件的当前状态。', '第 3 步应用补丁并自动备份。', '第 4 步启动独立助手清理运行时状态并重新打开 Cursor。', '第 5 步仅在需要回退时使用备份恢复。']
-    },
-    'step-locate': { title: '步骤 1：识别目录', lead: '确认补丁要作用在哪个 Cursor 安装。', points: ['推荐先点一键识别。', '如果电脑里有多个 Cursor 或识别失败，再手动选择。', '目录无效时会显示具体问题。'] },
-    'step-scan': { title: '步骤 2：扫描状态', lead: '扫描不会写入文件，只读取状态。', points: ['会同时检查 Workbench 主界面和 NLS 消息表。', '会统计英文源、中文目标和可用备份。', '扫描结果用于判断下一步是否需要应用或恢复。'] },
-    'step-apply': { title: '步骤 3：应用补丁', lead: '真正写入汉化内容的步骤。', points: ['写入前会备份目标文件。', '规则按模块和上下文匹配，不做裸词替换。', '如果已经应用过，会尽量保持幂等，不重复破坏文件。'] },
-    'step-restart': { title: '步骤 4：重启生效', lead: 'Cursor 已加载的界面资源不会自动刷新。', points: ['应用、卸载、恢复后都建议完全退出 Cursor 再打开。', '如果只是关闭窗口但后台进程仍在，可能仍看到旧界面。', '一键重启并清理会启动独立助手：先关闭当前识别安装对应的 Cursor.exe，再清理 state.vscdb UI 缓存，最后重新启动同一个 Cursor.exe。'] },
-    'step-restore': { title: '步骤 5：恢复备份', lead: '需要回退时再使用。', points: ['Workbench 备份只恢复 Workbench。', 'NLS 备份只恢复 NLS 消息表。', '恢复前也会生成安全快照，方便再次回退。'] },
-    'workbench-patch': {
-      title: 'Workbench 主界面补丁',
-      lead: '处理 Cursor 工作台主 bundle 中的私有硬编码 UI。',
-      points: ['目标通常是 out/vs/workbench/workbench.desktop.main.js。', '适合处理按钮、菜单、面板标题、提示文字等 bundle 内文本。', '不会覆盖 VS Code 官方语言包能正常处理的通用文本。']
-    },
-    'nls-patch': {
-      title: 'NLS 消息表补丁',
-      lead: '处理运行时消息表里的私有文本，例如 Chat History。',
-      points: ['目标是 out/nls.messages.json，同时依赖 out/nls.keys.json 做索引对齐。', '规则按 module/key/source 精确匹配，不会靠裸词搜索替换。', 'Chat History (Ctrl+Alt+\') 的文字部分来自这里，快捷键部分由 Cursor 运行时拼接。']
-    },
-    safety: {
-      title: '安全策略',
-      lead: '这个扩展按可回退、可扫描、可解释的方式工作。',
-      points: ['所有写入动作都会尽量先生成备份或安全快照。', '只处理 Cursor 安装目录内明确目标文件。', '不会翻译聊天内容、项目文件、配置值、命令 ID 或内部标识。', '一键重启并清理会启动独立助手接管关闭、清理和重启流程。', '如果 Cursor 升级后文件结构变化，应先扫描再决定是否应用。']
-    },
-    'runtime-state': {
-      title: '运行时 UI 缓存清理',
-      lead: '处理 Cursor 写入 state.vscdb 的 UI 文本缓存。',
-      points: ['不会把数据库里的英文替换成中文。', '不再额外创建 state.vscdb 副本，回退依赖 Cursor 自带的 state.vscdb.backup。', '只删除或清空命中完整英文 UI 文案的缓存字段，让 Cursor 下次从已补丁的默认配置重新生成。', '推荐使用「一键重启并清理 Cursor」；独立助手会在 Cursor 退出后再写入数据库，避免扩展宿主中断或运行时覆盖。']
-    },
-    'workbench-backup': {
-      title: 'Workbench 备份恢复',
-      lead: '只用于恢复 workbench.desktop.main.js。',
-      points: ['优先选择标记为原始官方备份或当前补丁备份的记录。', '恢复前会保存当前文件作为安全快照。', '恢复后需要重启 Cursor。']
-    },
-    'nls-backup': {
-      title: 'NLS 消息表备份恢复',
-      lead: '只用于恢复 nls.messages.json。',
-      points: ['不要用 Workbench 备份恢复 NLS，也不要反过来使用。', '恢复会替换消息表文件，并重新扫描状态。', '恢复后需要重启 Cursor。']
-    },
-    logs: {
-      title: '操作日志',
-      lead: '这里记录最近操作的关键结果。',
-      points: ['应用补丁后会显示命中数量、写入数量和备份路径。', '失败时会显示错误摘要。', '如果仍有残留英文，日志可以帮助判断下一步该查哪个目标。']
-    },
-    'path-problems': {
-      title: '路径问题',
-      lead: '所选目录未通过 Cursor 安装校验时会出现。',
-      points: ['常见原因是选到了项目目录、resources/app 目录或快捷方式目录。', '应选择 Cursor 安装根目录。', '可以重新点击手动选择修正。']
-    }
-  };
+  return `<div class="safety"><div class="section-title"><div class="left"><h2>路径问题</h2></div></div><ul class="problem-list">${problems.map(problem => `<li>${escapeHtml(problem)}</li>`).join('')}</ul></div>`;
 }
 
 function renderProgressSection(progress: ManagerProgressState | undefined): string {
