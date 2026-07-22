@@ -4500,5 +4500,85 @@
     "id": "workbench.glass.terminal.new-terminal-title-v2",
     "source": "B(\"glass.terminal.treeNewTerminal\",\"New Terminal\")",
     "target": "B(\"glass.terminal.treeNewTerminal\",\"新建终端\")"
+  },
+  {
+    "id": "workbench.message.snapshot-saved-v3",
+    "source": "confirm({type:No.Info,message:\"Snapshot saved.\",detail:",
+    "target": "confirm({type:No.Info,message:\"快照已保存。\",detail:"
+  },
+  {
+    "id": "workbench.title.replace-current-chat-v3",
+    "source": "openDialog({title:\"Replace current chat?\",message:\"You've reached the limit",
+    "target": "openDialog({title:\"替换当前聊天？\",message:\"You've reached the limit"
+  },
+  {
+    "id": "workbench.label.run-everything-mode-warning-v3",
+    "source": "\"doNotShowFullYoloModeWarningAgain\",label:\"Run Everything Mode Warning\"",
+    "target": "\"doNotShowFullYoloModeWarningAgain\",label:\"全部运行模式警告\""
+  },
+  {
+    "id": "workbench.title.no-branches-v2",
+    "source": "\"no-branches\",title:\"No branches\"",
+    "target": "\"no-branches\",title:\"无分支\""
+  },
+  {
+    "id": "workbench.title.no-agents-yet",
+    "source": "title:\"No agents yet\",description:\"Create an agent to start working on tasks\"",
+    "target": "title:\"暂无智能体\",description:\"创建一个智能体以开始处理任务\""
+  },
+  {
+    "id": "workbench.label.no-pr-data-v2",
+    "source": "return\"No PR data available\"",
+    "target": "return\"无 PR 数据\""
+  },
+  {
+    "id": "workbench.nav.plugins-mcps-skills-rules",
+    "source": "_rc=[{id:\"plugins\",label:\"Plugins\"},{id:\"mcps\",label:\"MCPs\"},{id:\"skills\",label:\"Skills\"},{id:\"agents\",label:\"Subagents\"},{id:\"rules\",label:\"Rules\"},{id:\"commands\",label:\"Commands\"},{id:\"hooks\",label:\"Hooks\"}]",
+    "target": "_rc=[{id:\"plugins\",label:\"插件\"},{id:\"mcps\",label:\"MCPs\"},{id:\"skills\",label:\"技能\"},{id:\"agents\",label:\"子智能体\"},{id:\"rules\",label:\"规则\"},{id:\"commands\",label:\"命令\"},{id:\"hooks\",label:\"钩子\"}]"
+  },
+  {
+    "id": "workbench.loading.skills",
+    "source": "Re(\"<div>Loading Skills...\")",
+    "target": "Re(\"<div>正在加载技能…\")"
+  },
+  {
+    "id": "workbench.loading.subagents",
+    "source": "Re(\"<div>Loading Subagents...\")",
+    "target": "Re(\"<div>正在加载子智能体…\")"
+  },
+  {
+    "id": "workbench.loading.rules",
+    "source": "Re(\"<div>Loading Rules...\")",
+    "target": "Re(\"<div>正在加载规则…\")"
+  },
+  {
+    "id": "workbench.loading.commands",
+    "source": "Re(\"<div>Loading Commands...\")",
+    "target": "Re(\"<div>正在加载命令…\")"
+  },
+  {
+    "id": "settings.no-results-found",
+    "source": "Re(\"<div>No results found.\")",
+    "target": "Re(\"<div>未找到结果。\")"
+  },
+  {
+    "id": "settings.upgrade-to-pro",
+    "source": "Re(\"<span class=cursor-settings-sidebar-cell-label>Upgrade to Pro\")",
+    "target": "Re(\"<span class=cursor-settings-sidebar-cell-label>升级到专业版\")"
+  },
+  {
+    "id": "settings.label.settings-bugbot",
+    "source": "\"bugbot-open-settings\",{label:\"Settings\"",
+    "target": "\"bugbot-open-settings\",{label:\"设置\""
+  },
+  {
+    "id": "workbench.label.rename-composer",
+    "source": "\"rename-composer\",label:\"Rename\"",
+    "target": "\"rename-composer\",label:\"重命名\""
+  },
+  {
+    "id": "workbench.label.rename-background-composer",
+    "source": "\"rename-background-composer\",label:\"Rename\"",
+    "target": "\"rename-background-composer\",label:\"重命名\""
   }
 ]
