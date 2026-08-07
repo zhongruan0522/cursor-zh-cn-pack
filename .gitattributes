@@ -1,0 +1,22 @@
+# Normalize all text files to LF line endings across platforms.
+# This overrides core.autocrlf, which was causing phantom "modified" diffs
+# (working copy stored as LF while git expected CRLF).
+* text=auto eol=lf
+
+# Binary assets — never normalize or merge.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.svg binary
+*.wav binary
+*.mp3 binary
+*.mp4 binary
+*.zip binary
+*.gz binary
+*.vsix binary
+*.wasm binary
+*.sqlite binary
+*.db binary
