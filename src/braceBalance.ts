@@ -12,6 +12,18 @@ export function measureBraceBalance(value: string): BraceBalance {
   let quote = '';
   let escaped = false;
 
+  // Only track double-quote and backtick as string delimiters.
+  // Single quotes are intentionally NOT tracked: in Cursor's minified workbench
+  // bundles, ASCII single quotes almost always appear as English apostrophes
+  // inside double-quoted strings (e.g. "agent's execution"), not as JS string
+  // delimiters.  Tracking them as delimiters causes cascading false positives
+  // because the linear scanner cannot correctly parse nested template-literal
+  // interpolation, regexes, or comments in the 40 MB+ bundle — an errant
+  // earlier quote can leave the scanner in "code" mode when it hits an
+  // apostrophe, flipping it into single-quote string mode and corrupting every
+  // subsequent brace count.  Dropping single-quote tracking keeps the
+  // measurement stable before/after patching while still guarding braces
+  // inside the dominant double-quote and backtick strings.
   for (let index = 0; index < value.length; index += 1) {
     const char = value[index];
     if (inString) {
@@ -32,7 +44,7 @@ export function measureBraceBalance(value: string): BraceBalance {
       continue;
     }
 
-    if (char === '"' || char === '\'' || char === '`') {
+    if (char === '"' || char === '`') {
       inString = true;
       quote = char;
       continue;

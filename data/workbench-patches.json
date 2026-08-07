@@ -1355,11 +1355,6 @@
     "target": "placeholder:\"输入你的 Google AI Studio API 密钥\""
   },
   {
-    "id": "settings.models.azure.title",
-    "source": "title:\"Azure OpenAI\"",
-    "target": "title:\"Azure OpenAI\""
-  },
-  {
     "id": "settings.models.azure.description",
     "source": "get description(){return\"Configure Azure OpenAI to use OpenAI models through your Azure account.\"}",
     "target": "get description(){return\"配置 Azure OpenAI，以通过你的 Azure 账户使用 OpenAI 模型。\"}"
@@ -1398,11 +1393,6 @@
     "id": "settings.models.bedrock.team-configured-note",
     "source": "mek=ot(\"<div>Your team has configured AWS Bedrock access. You can use your teams Bedrock instance without any additional configuration.\")",
     "target": "mek=ot(\"<div>你的团队已配置 AWS Bedrock 访问。无需额外配置即可使用团队的 Bedrock 实例。\")"
-  },
-  {
-    "id": "settings.models.bedrock.title",
-    "source": "title:\"AWS Bedrock\"",
-    "target": "title:\"AWS Bedrock\""
   },
   {
     "id": "settings.models.bedrock.description",
@@ -3155,11 +3145,6 @@
     "target": "Jf,{title:\"应用更改\""
   },
   {
-    "id": "workbench.title.azure-openai",
-    "source": "Jf,{title:\"Azure OpenAI\"",
-    "target": "Jf,{title:\"Azure OpenAI\""
-  },
-  {
     "id": "workbench.title.configuration-errors",
     "source": "Jf,{title:\"Configuration Errors\"",
     "target": "Jf,{title:\"配置错误\""
@@ -3515,11 +3500,6 @@
     "target": "message:\"确定要将聊天模式重置为默认吗？\""
   },
   {
-    "id": "workbench.message.composerstate",
-    "source": "message:\"composerState\"",
-    "target": "message:\"composerState\""
-  },
-  {
     "id": "workbench.message.loading-cloud-mcp-servers",
     "source": "message:\"Loading cloud MCP servers...\"",
     "target": "message:\"正在加载云 MCP 服务器...\""
@@ -3535,11 +3515,6 @@
     "target": "message:\"正在加载用户 MCP 服务器...\""
   },
   {
-    "id": "workbench.message.slowstartup",
-    "source": "message:\"SlowStartup\"",
-    "target": "message:\"SlowStartup\""
-  },
-  {
     "id": "workbench.title.approvals-execution-for-commands-mcp-and-more",
     "source": "title:\"Approvals & Execution for commands, MCP and more\"",
     "target": "title:\"命令、MCP 等的审批与执行\""
@@ -3548,11 +3523,6 @@
     "id": "workbench.title.authentication",
     "source": "title:\"Authentication\"",
     "target": "title:\"身份验证\""
-  },
-  {
-    "id": "workbench.title.beta",
-    "source": "title:\"Beta\"",
-    "target": "title:\"Beta\""
   },
   {
     "id": "workbench.title.browser",
@@ -3608,16 +3578,6 @@
     "id": "workbench.title.get-started",
     "source": "title:\"Get Started\"",
     "target": "title:\"开始使用\""
-  },
-  {
-    "id": "workbench.title.git",
-    "source": "title:\"Git\"",
-    "target": "title:\"Git\""
-  },
-  {
-    "id": "workbench.title.hooks",
-    "source": "title:\"Hooks\"",
-    "target": "title:\"Hooks\""
   },
   {
     "id": "workbench.title.invite",
@@ -3688,11 +3648,6 @@
     "id": "workbench.title.switch-privacy-mode",
     "source": "title:\"Switch Privacy Mode?\"",
     "target": "title:\"切换隐私模式？\""
-  },
-  {
-    "id": "workbench.title.tab",
-    "source": "title:\"Tab\"",
-    "target": "title:\"Tab\""
   },
   {
     "id": "workbench.title.tools",
@@ -3848,11 +3803,6 @@
     "id": "workbench.items.fixed-unlimited-disabled",
     "source": "items:[{id:\"fixed\",label:\"Fixed\"},{id:\"unlimited\",label:\"Unlimited\"},{id:\"disabled\",label:\"Disabled\"}]",
     "target": "items:[{id:\"fixed\",label:\"固定\"},{id:\"unlimited\",label:\"不限额\"},{id:\"disabled\",label:\"已禁用\"}]"
-  },
-  {
-    "id": "workbench.items.http-2-http-1-1-http-1-0",
-    "source": "items:[{id:\"http2\",label:\"HTTP/2\"},{id:\"http1.1\",label:\"HTTP/1.1\"},{id:\"http1.0\",label:\"HTTP/1.0\"}]",
-    "target": "items:[{id:\"http2\",label:\"HTTP/2\"},{id:\"http1.1\",label:\"HTTP/1.1\"},{id:\"http1.0\",label:\"HTTP/1.0\"}]"
   },
   {
     "id": "workbench.items.send-after-current-message-stop-send-right-away",
@@ -4580,5 +4530,360 @@
     "id": "workbench.label.rename-background-composer",
     "source": "\"rename-background-composer\",label:\"Rename\"",
     "target": "\"rename-background-composer\",label:\"重命名\""
+  },
+  {
+    "id": "workbench.description.auto-parse-links-quick-edit",
+    "source": "description:\"Automatically parse links pasted into Quick Edit\"",
+    "target": "description:\"自动解析粘贴到 Quick Edit 中的链接\""
+  },
+  {
+    "id": "workbench.description.voice-submit-keywords",
+    "source": "description:\"Custom words that submit a voice prompt. Spaces and punctuation are ignored.\"",
+    "target": "description:\"用于提交语音提示的自定义词语，空格和标点会被忽略。\""
+  },
+  {
+    "id": "settings.worktrees.description.max-aggregate-size",
+    "source": "description:\"Maximum aggregate worktree size\"",
+    "target": "description:\"工作树最大总大小\""
+  },
+  {
+    "id": "settings.worktrees.description.max-retained",
+    "source": "description:\"Maximum retained Cursor-managed worktrees\"",
+    "target": "description:\"保留的 Cursor 管理工作树最大数量\""
+  },
+  {
+    "id": "settings.privacy.description.mask-email",
+    "source": "description:\"Partially mask your email address in the Cursor user interface\"",
+    "target": "description:\"在 Cursor 界面中部分隐藏你的邮箱地址\""
+  },
+  {
+    "id": "settings.network.description.post-self-driving-slack",
+    "source": "description:\"Post Self-driving updates to Slack\"",
+    "target": "description:\"将自动驾驶更新推送到 Slack\""
+  },
+  {
+    "id": "settings.plan.description.on-demand-amount",
+    "source": "description:\"Set a fixed amount or make on-demand usage unlimited\"",
+    "target": "description:\"设置固定额度，或将按需用量设为无限\""
+  },
+  {
+    "id": "settings.agents.description.legacy-terminal-unsupported",
+    "source": "description:\"Use legacy terminal tool on unsupported shells\"",
+    "target": "description:\"在不支持的 shell 上使用旧版终端工具\""
+  },
+  {
+    "id": "workbench.description.where-new-agents-start",
+    "source": "description:\"Where new agents start by default\"",
+    "target": "description:\"新智能体默认的启动位置\""
+  },
+  {
+    "id": "settings.worktrees.label.cleanup",
+    "source": "label:\"Cleanup\"",
+    "target": "label:\"清理\""
+  },
+  {
+    "id": "settings.worktrees.label.cursor-managed",
+    "source": "label:\"Cursor-managed worktrees\"",
+    "target": "label:\"Cursor 管理的工作树\""
+  },
+  {
+    "id": "settings.worktrees.label.max-total-size",
+    "source": "label:\"Max total size (GB)\"",
+    "target": "label:\"最大总大小 (GB)\""
+  },
+  {
+    "id": "settings.worktrees.label.max-worktrees",
+    "source": "label:\"Max worktrees\"",
+    "target": "label:\"最大工作树数\""
+  },
+  {
+    "id": "settings.agents.label.run-mode",
+    "source": "label:\"Run Mode\"",
+    "target": "label:\"运行模式\""
+  },
+  {
+    "id": "settings.agents.label.terminal-and-editing",
+    "source": "label:\"Terminal and Editing\"",
+    "target": "label:\"终端与编辑\""
+  },
+  {
+    "id": "settings.agents.label.tracing",
+    "source": "label:\"Tracing\"",
+    "target": "label:\"追踪\""
+  },
+  {
+    "id": "workbench.label.default-environment",
+    "source": "label:\"Default Environment\"",
+    "target": "label:\"默认环境\""
+  },
+  {
+    "id": "workbench.label.open-settings",
+    "source": "label:\"Open Settings\"",
+    "target": "label:\"打开设置\""
+  },
+  {
+    "id": "workbench.label.rename",
+    "source": "label:\"Rename\"",
+    "target": "label:\"重命名\""
+  },
+  {
+    "id": "workbench.label.voice-submit-keywords",
+    "source": "label:\"Voice Submit Keywords\"",
+    "target": "label:\"语音提交关键词\""
+  },
+  {
+    "id": "settings.title.conversation",
+    "source": "title:\"Conversation\"",
+    "target": "title:\"对话\""
+  },
+  {
+    "id": "workbench.title.execution-and-approvals",
+    "source": "title:\"Execution and Approvals\"",
+    "target": "title:\"执行与审批\""
+  },
+  {
+    "id": "workbench.title.git-prs",
+    "source": "title:\"Git & PRs\"",
+    "target": "title:\"Git 与 PR\""
+  },
+  {
+    "id": "settings.title.docs",
+    "source": "title:\"Docs\"",
+    "target": "title:\"文档\""
+  },
+  {
+    "id": "workbench.title.replace-current-chat",
+    "source": "title:\"Replace current chat?\"",
+    "target": "title:\"替换当前聊天？\""
+  },
+  {
+    "id": "workbench.message.snapshot-saved",
+    "source": "message:\"Snapshot saved.\"",
+    "target": "message:\"快照已保存。\""
+  },
+  {
+    "id": "workbench.items.copy-prompt-copy-request-id",
+    "source": "items:[{id:\"composer.standalone.copyPrompt\",label:\"Copy prompt\",onSelect:()=>{KUv(e.clipboardService,t)}},{id:\"composer.standalone.copyRequestId\",label:\"Copy Request ID\",onSelect:()=>{if(e.requestId===void 0){e.notificationService.notify({message:\"No request ID found\",severity:Bi.Info});return}e.clipboardService.writeText(e.requestId),e.notificationService.notify({message:\"Request ID copied to clipboard\",severity:Bi.Info})}}]",
+    "target": "items:[{id:\"composer.standalone.copyPrompt\",label:\"复制提示词\",onSelect:()=>{KUv(e.clipboardService,t)}},{id:\"composer.standalone.copyRequestId\",label:\"复制请求 ID\",onSelect:()=>{if(e.requestId===void 0){e.notificationService.notify({message:\"未找到请求 ID\",severity:Bi.Info});return}e.clipboardService.writeText(e.requestId),e.notificationService.notify({message:\"请求 ID 已复制到剪贴板\",severity:Bi.Info})}}]"
+  },
+  {
+    "id": "workbench.items.copy-image-download-image",
+    "source": "items:[{id:\"copyImage\",label:\"Copy Image\",onSelect:()=>{azt(n.src).then(a=>e.clipboardService.writeImage(a)).catch(So)}},{id:\"downloadImage\",label:\"Download Image\",onSelect:()=>{jam(n.src,\"image\").catch(So)}}]",
+    "target": "items:[{id:\"copyImage\",label:\"复制图片\",onSelect:()=>{azt(n.src).then(a=>e.clipboardService.writeImage(a)).catch(So)}},{id:\"downloadImage\",label:\"下载图片\",onSelect:()=>{jam(n.src,\"image\").catch(So)}}]"
+  },
+  {
+    "id": "workbench.items.copy-selection",
+    "source": "items:[{id:\"copySelection\",label:\"Copy\",onSelect:()=>{e.targetWindow.document.execCommand(\"copy\")}}]",
+    "target": "items:[{id:\"copySelection\",label:\"复制\",onSelect:()=>{e.targetWindow.document.execCommand(\"copy\")}}]"
+  },
+  {
+    "id": "workbench.items.cut-copy-paste",
+    "source": "items:[{id:\"cut\",label:\"Cut\",onSelect:()=>{e.commands.focus(),Pw().execCommand(\"cut\")}},{id:\"copy\",label:\"Copy\",onSelect:()=>{e.commands.focus(),Pw().execCommand(\"copy\")}},{id:\"paste\",label:\"Paste\",onSelect:()=>{(async()=>{try{const o=await n.readText();if(e.commands.focus(),i&&await i(e,o))return;const a=usa(o);if(a.length===0){s(\"contextMenuPaste.emptyAfterNormalize\");return}e.view.pasteText(a)}catch{s(\"contextMenuPaste.clipboardOrEditorFailed\")}})()}}]",
+    "target": "items:[{id:\"cut\",label:\"剪切\",onSelect:()=>{e.commands.focus(),Pw().execCommand(\"cut\")}},{id:\"copy\",label:\"复制\",onSelect:()=>{e.commands.focus(),Pw().execCommand(\"copy\")}},{id:\"paste\",label:\"粘贴\",onSelect:()=>{(async()=>{try{const o=await n.readText();if(e.commands.focus(),i&&await i(e,o))return;const a=usa(o);if(a.length===0){s(\"contextMenuPaste.emptyAfterNormalize\");return}e.view.pasteText(a)}catch{s(\"contextMenuPaste.clipboardOrEditorFailed\")}})()}}]"
+  },
+  {
+    "id": "workbench.items.default-on-off",
+    "source": "items:[{id:\"default\",label:\"Default\"},{id:\"always\",label:\"On\"},{id:\"never\",label:\"Off\"}]",
+    "target": "items:[{id:\"default\",label:\"默认\"},{id:\"always\",label:\"开启\"},{id:\"never\",label:\"关闭\"}]"
+  },
+  {
+    "id": "workbench.items.download-video",
+    "source": "items:[{id:\"downloadVideo\",label:\"Download Video\",onSelect:()=>zam(n.src,\"video\")}]",
+    "target": "items:[{id:\"downloadVideo\",label:\"下载视频\",onSelect:()=>zam(n.src,\"video\")}]"
+  },
+  {
+    "id": "workbench.items.open-agent-copy-link",
+    "source": "items:[{id:\"openAgent\",label:\"Open Agent\",onSelect:()=>{t(),e.openerService.open(XXo(i),{fromUserGesture:!0})}},{id:\"copyLink\",label:\"Copy Link\",onSelect:()=>{t(),e.clipboardService.writeText(BFp(i,e.websiteUrl))}}]",
+    "target": "items:[{id:\"openAgent\",label:\"打开智能体\",onSelect:()=>{t(),e.openerService.open(XXo(i),{fromUserGesture:!0})}},{id:\"copyLink\",label:\"复制链接\",onSelect:()=>{t(),e.clipboardService.writeText(BFp(i,e.websiteUrl))}}]"
+  },
+  {
+    "id": "workbench.items.open-in-browser-options",
+    "source": "items:[{id:\"openInCursorBrowser\",label:\"Open in Cursor Browser\",onSelect:()=>{t(),e.commandService.executeCommand(\"workbench.action.openBrowserEditor\",{url:n})}},{id:\"openExternal\",label:\"Open in External Browser\",onSelect:()=>{t(),e.analyticsService.trackEvent(\"browser.openedExternal\"),e.openerService.open(n,{openExternal:!0,fromUserGesture:!0})}},{id:\"copyLink\",label:\"Copy Link\",onSelect:()=>{t(),e.clipboardService.writeText(n)}}]",
+    "target": "items:[{id:\"openInCursorBrowser\",label:\"在 Cursor 浏览器中打开\",onSelect:()=>{t(),e.commandService.executeCommand(\"workbench.action.openBrowserEditor\",{url:n})}},{id:\"openExternal\",label:\"在外部浏览器中打开\",onSelect:()=>{t(),e.analyticsService.trackEvent(\"browser.openedExternal\"),e.openerService.open(n,{openExternal:!0,fromUserGesture:!0})}},{id:\"copyLink\",label:\"复制链接\",onSelect:()=>{t(),e.clipboardService.writeText(n)}}]"
+  },
+  {
+    "id": "workbench.items.select-all-tiptap",
+    "source": "items:[{id:\"selectAll\",label:\"Select All\",onSelect:()=>{e.chain().focus().selectAll().run()}}]",
+    "target": "items:[{id:\"selectAll\",label:\"全选\",onSelect:()=>{e.chain().focus().selectAll().run()}}]"
+  },
+  {
+    "id": "workbench.label.cancel",
+    "source": "label:\"Cancel\"",
+    "target": "label:\"取消\""
+  },
+  {
+    "id": "workbench.label.continue",
+    "source": "label:\"Continue\"",
+    "target": "label:\"继续\""
+  },
+  {
+    "id": "workbench.label.learn-more",
+    "source": "label:\"Learn More\"",
+    "target": "label:\"了解更多\""
+  },
+  {
+    "id": "workbench.label.settings-generic",
+    "source": "label:\"Settings\"",
+    "target": "label:\"设置\""
+  },
+  {
+    "id": "workbench.children.save",
+    "source": "children:\"Save\"",
+    "target": "children:\"保存\""
+  },
+  {
+    "id": "workbench.title.open-generic",
+    "source": "title:\"Open\"",
+    "target": "title:\"打开\""
+  },
+  {
+    "id": "workbench.array.agent-modes",
+    "source": "spo=[{id:\"plan\",label:\"Plan\",icon:\"list-todo\",color:\"yellow\",placeholder:\"Plan and design before coding...\",description:\"Generates a robust implementation plan prior to writing code, asking clarifying questions when needed.\"},{id:\"debug\",label:\"Debug\",icon:\"bugbot\",color:\"red\",placeholder:\"Debug and troubleshoot issues...\",description:\"Pinpoints the root cause of an issue by generating hypotheses and gathering runtime evidence.\"},{id:\"chat\",label:\"Ask\",icon:\"chat-bubble-question\",color:\"green\",placeholder:\"Ask questions without making changes...\",description:\"Explores the codebase and answer questions without making  edits.\"}]",
+    "target": "spo=[{id:\"plan\",label:\"规划\",icon:\"list-todo\",color:\"yellow\",placeholder:\"编码前进行规划与设计...\",description:\"在编写代码前生成稳健的实现方案，并在需要时提出澄清问题。\"},{id:\"debug\",label:\"调试\",icon:\"bugbot\",color:\"red\",placeholder:\"调试和排查问题...\",description:\"通过生成假设和收集运行时证据来定位问题的根本原因。\"},{id:\"chat\",label:\"提问\",icon:\"chat-bubble-question\",color:\"green\",placeholder:\"提出问题而不进行修改...\",description:\"探索代码库并回答问题，不进行任何编辑。\"}]"
+  },
+  {
+    "id": "workbench.array.tool-categories",
+    "source": "Dqg=[{id:\"search\",title:\"Search\",description:\"Codebase, web\",tools:[{tool:Ye.READ_SEMSEARCH_FILES,label:\"Codebase\"},{tool:Ye.WEB_SEARCH,label:\"Web\"},{tool:Ye.RIPGREP_RAW_SEARCH,label:\"Grep Search\"},{tool:Ye.FILE_SEARCH,label:\"Search files\"}]},{id:\"edit\",title:\"Edit\",description:\"Files in workspace\",tools:[{tool:Ye.EDIT_FILE,label:\"Edit & Reapply\"},{tool:Ye.DELETE_FILE,label:\"Delete file\"}]},{id:\"run\",title:\"Run\",description:\"Commands\",tools:[{tool:Ye.RUN_TERMINAL_COMMAND_V2,label:\"Terminal\"}]}]",
+    "target": "Dqg=[{id:\"search\",title:\"搜索\",description:\"代码库、网络\",tools:[{tool:Ye.READ_SEMSEARCH_FILES,label:\"代码库\"},{tool:Ye.WEB_SEARCH,label:\"网络\"},{tool:Ye.RIPGREP_RAW_SEARCH,label:\"Grep 搜索\"},{tool:Ye.FILE_SEARCH,label:\"搜索文件\"}]},{id:\"edit\",title:\"编辑\",description:\"工作区文件\",tools:[{tool:Ye.EDIT_FILE,label:\"编辑并重新应用\"},{tool:Ye.DELETE_FILE,label:\"删除文件\"}]},{id:\"run\",title:\"运行\",description:\"命令\",tools:[{tool:Ye.RUN_TERMINAL_COMMAND_V2,label:\"终端\"}]}]"
+  },
+  {
+    "id": "workbench.switch.run-mode-short",
+    "source": "an=jt=>{switch(jt){case\"ask_every_time\":return\"Ask Every Time\";case\"use_allowlist\":return it()?\"Run in Sandbox\":\"Allowlist\";case\"smart_auto\":return it()?\"Auto-review (with Sandbox)\":\"Auto-review\";case\"run_everything\":return\"Run Everything\"}}",
+    "target": "an=jt=>{switch(jt){case\"ask_every_time\":return\"每次询问\";case\"use_allowlist\":return it()?\"在沙箱中运行\":\"允许列表\";case\"smart_auto\":return it()?\"自动审查（含沙箱）\":\"自动审查\";case\"run_everything\":return\"全部运行\"}}"
+  },
+  {
+    "id": "workbench.switch.run-mode-full",
+    "source": "fe=Ue=>{switch(Ue){case pm.ASK_EVERY_TIME:return\"Ask Every Time\";case pm.YOLO:return\"Allowlist\";case pm.YOLO_WITH_SANDBOX:return\"Allowlist (with Sandbox)\";case pm.SMART_AUTO:return\"Auto-review\";case pm.SMART_AUTO_WITH_SANDBOX:return\"Auto-review (with Sandbox)\";case pm.FULL_YOLO:return x()?\"Run Everything (Unsandboxed)\":\"Run Everything\";default:return\"Ask Every Time\"}}",
+    "target": "fe=Ue=>{switch(Ue){case pm.ASK_EVERY_TIME:return\"每次询问\";case pm.YOLO:return\"允许列表\";case pm.YOLO_WITH_SANDBOX:return\"允许列表（含沙箱）\";case pm.SMART_AUTO:return\"自动审查\";case pm.SMART_AUTO_WITH_SANDBOX:return\"自动审查（含沙箱）\";case pm.FULL_YOLO:return x()?\"全部运行（无沙箱）\":\"全部运行\";default:return\"每次询问\"}}"
+  },
+  {
+    "id": "workbench.switch.run-mode-descriptions",
+    "source": "we=Ue=>{switch(Ue){case pm.ASK_EVERY_TIME:return\"Agent will ask for approval before running tools.\";case pm.YOLO:return\"Commands that are allowlisted will run automatically.\";case pm.YOLO_WITH_SANDBOX:return\"Many commands will run automatically inside the sandbox, and you can also allowlist other actions.\";case pm.SMART_AUTO:return\"A classifier will run for each action and decide whether it's safe to execute this command. Allowlists are still respected.\";case pm.SMART_AUTO_WITH_SANDBOX:return\"Many commands will run automatically inside the sandbox, and a classifier will run for the actions that cannot run in the sandbox. Allowlists are still respected.\";case pm.FULL_YOLO:return\"All commands will run without approval, classification or sandboxing.\";default:{const Ge=Ue;return\"\"}}}",
+    "target": "we=Ue=>{switch(Ue){case pm.ASK_EVERY_TIME:return\"智能体在运行工具前会请求审批。\";case pm.YOLO:return\"允许列表中的命令将自动运行。\";case pm.YOLO_WITH_SANDBOX:return\"许多命令会在沙箱中自动运行，你也可以将其他操作加入允许列表。\";case pm.SMART_AUTO:return\"分类器会针对每个操作判断执行该命令是否安全。允许列表仍然生效。\";case pm.SMART_AUTO_WITH_SANDBOX:return\"许多命令会在沙箱中自动运行，分类器会处理无法在沙箱中运行的操作。允许列表仍然生效。\";case pm.FULL_YOLO:return\"所有命令将无需审批、分类或沙箱即运行。\";default:{const Ge=Ue;return\"\"}}}"
+  },
+  {
+    "id": "workbench.array.nav-files-agents-chats",
+    "source": "Byd=[{id:\"files-and-folders\",label:\"Files & Folders\",mode:\"files_and_folders\",iconName:\"folder\"},{id:\"agent-stores\",label:\"Agent Stores\",mode:\"agent_stores\",iconName:\"folder\"},{id:\"past-chats\",label:\"Past Chats\",mode:\"past_chats\",iconName:\"comment\"}]",
+    "target": "Byd=[{id:\"files-and-folders\",label:\"文件与文件夹\",mode:\"files_and_folders\",iconName:\"folder\"},{id:\"agent-stores\",label:\"智能体存储\",mode:\"agent_stores\",iconName:\"folder\"},{id:\"past-chats\",label:\"历史聊天\",mode:\"past_chats\",iconName:\"comment\"}]"
+  },
+  {
+    "id": "workbench.array.nav-plugins-skills-mcps",
+    "source": "Tuo=[{id:\"plugins\",label:\"Plugins\"},{id:\"skills\",label:\"Skills\"},{id:\"tools\",label:\"MCPs\"},{id:\"subagents\",label:\"Subagents\"},{id:\"commands\",label:\"Commands\"}]",
+    "target": "Tuo=[{id:\"plugins\",label:\"插件\"},{id:\"skills\",label:\"技能\"},{id:\"tools\",label:\"MCP\"},{id:\"subagents\",label:\"子智能体\"},{id:\"commands\",label:\"命令\"}]"
+  },
+  {
+    "id": "workbench.array.nav-plugins-mcps-skills-rules",
+    "source": "uOi=[{id:\"plugins\",label:\"Plugins\"},{id:\"mcps\",label:\"MCPs\"},{id:\"skills\",label:\"Skills\"},{id:\"agents\",label:\"Subagents\"},{id:\"rules\",label:\"Rules\"},{id:\"commands\",label:\"Commands\"},{id:\"hooks\",label:\"Hooks\"}]",
+    "target": "uOi=[{id:\"plugins\",label:\"插件\"},{id:\"mcps\",label:\"MCP\"},{id:\"skills\",label:\"技能\"},{id:\"agents\",label:\"子智能体\"},{id:\"rules\",label:\"规则\"},{id:\"commands\",label:\"命令\"},{id:\"hooks\",label:\"钩子\"}]"
+  },
+  {
+    "id": "workbench.switch.type-labels",
+    "source": "FI=Ni=>{switch(Ni){case\"skill\":return\"Skill\";case\"rule\":return\"Rule\";case\"subagent\":return\"Subagent\";case\"command\":return\"Command\";case\"mcp\":return\"MCP\"}}",
+    "target": "FI=Ni=>{switch(Ni){case\"skill\":return\"技能\";case\"rule\":return\"规则\";case\"subagent\":return\"子智能体\";case\"command\":return\"命令\";case\"mcp\":return\"MCP\"}}"
+  },
+  {
+    "id": "workbench.array.git-stash-commit-cloud",
+    "source": "edo=[{id:\"stash\",label:\"Stash changes\",description:\"Temporarily save uncommitted work, then check out the cloud agent branch.\"},{id:\"commit\",label:\"Commit changes\",description:\"Create a checkpoint commit of your changes, then check out the branch.\"}]",
+    "target": "edo=[{id:\"stash\",label:\"储藏更改\",description:\"临时保存未提交的工作，然后检出云智能体分支。\"},{id:\"commit\",label:\"提交更改\",description:\"为你的更改创建检查点提交，然后检出分支。\"}]"
+  },
+  {
+    "id": "workbench.array.git-commit-stash-discard",
+    "source": "Tad=[{id:\"commit\",label:\"Commit changes\",description:\"Create a checkpoint commit with your current changes\"},{id:\"stash\",label:\"Stash changes\",description:\"Save your changes to a stash and restore them later\"},{id:\"discard\",label:\"Discard changes\",description:\"Delete your current uncommitted changes before switching\"}]",
+    "target": "Tad=[{id:\"commit\",label:\"提交更改\",description:\"为当前更改创建检查点提交\"},{id:\"stash\",label:\"储藏更改\",description:\"将更改保存到储藏区，以便稍后恢复\"},{id:\"discard\",label:\"放弃更改\",description:\"在切换前删除当前未提交的更改\"}]"
+  },
+  {
+    "id": "workbench.array.cloud-continue-options",
+    "source": "xad=[{id:\"cloud\",label:\"Continue in cloud and leave changes on this branch undisturbed\"},{id:\"commit\",label:\"Commit current changes to checkpoint\"},{id:\"stash\",label:\"Stash and save your changes so you can restore them later\"},{id:\"discard\",label:\"Discard your current uncommitted changes\"}]",
+    "target": "xad=[{id:\"cloud\",label:\"在云端继续，此分支上的更改保持不变\"},{id:\"commit\",label:\"提交当前更改作为检查点\"},{id:\"stash\",label:\"储藏并保存你的更改，以便稍后恢复\"},{id:\"discard\",label:\"放弃当前未提交的更改\"}]"
+  },
+  {
+    "id": "workbench.array.browser-open-location",
+    "source": "E=[{id:\"inApp\",label:\"Inside Cursor\"},{id:\"externalBrowser\",label:\"Default browser\"}]",
+    "target": "E=[{id:\"inApp\",label:\"在 Cursor 内\"},{id:\"externalBrowser\",label:\"默认浏览器\"}]"
+  },
+  {
+    "id": "workbench.array.scope-all-user-v1",
+    "source": "en=[{id:\"all\",label:\"All\"},{id:\"user\",label:\"User\"}]",
+    "target": "en=[{id:\"all\",label:\"全部\"},{id:\"user\",label:\"用户\"}]"
+  },
+  {
+    "id": "workbench.array.scope-all-user-v2",
+    "source": "z=[{id:JR,label:\"All\"},{id:tX,label:\"User\"}]",
+    "target": "z=[{id:JR,label:\"全部\"},{id:tX,label:\"用户\"}]"
+  },
+  {
+    "id": "workbench.array.worktree-locations",
+    "source": "fFm=[{id:\"last-used\",label:\"Last used\"},{id:\"cloud\",label:\"Cloud\"},{id:\"local\",label:\"Local\"},{id:\"new-worktree\",label:\"New Worktree\"}]",
+    "target": "fFm=[{id:\"last-used\",label:\"上次使用\"},{id:\"cloud\",label:\"云端\"},{id:\"local\",label:\"本地\"},{id:\"new-worktree\",label:\"新建工作树\"}]"
+  },
+  {
+    "id": "workbench.array.view-modes",
+    "source": "jho=[{id:\"kanban\",label:\"Board\",iconName:\"board-kanban\"},{id:\"list\",label:\"List\",iconName:\"list-bullets\"},{id:\"grid\",label:\"Grid\",iconName:\"grid\"},{id:\"graph\",label:\"Graph\",iconName:\"graph\"}]",
+    "target": "jho=[{id:\"kanban\",label:\"看板\",iconName:\"board-kanban\"},{id:\"list\",label:\"列表\",iconName:\"list-bullets\"},{id:\"grid\",label:\"网格\",iconName:\"grid\"},{id:\"graph\",label:\"图表\",iconName:\"graph\"}]"
+  },
+  {
+    "id": "workbench.array.detail-levels",
+    "source": "Ri_=[{id:$It,label:\"Compact\"},{id:Xcn,label:\"Balanced\"},{id:tat,label:\"Detailed\"}]",
+    "target": "Ri_=[{id:$It,label:\"紧凑\"},{id:Xcn,label:\"均衡\"},{id:tat,label:\"详细\"}]"
+  },
+  {
+    "id": "workbench.array.tabs-tasks-context",
+    "source": "rpo=[{id:\"tasks\",label:\"Tasks\"},{id:\"context\",label:\"Context\"},{id:\"customize\",label:\"Customize\"}]",
+    "target": "rpo=[{id:\"tasks\",label:\"任务\"},{id:\"context\",label:\"上下文\"},{id:\"customize\",label:\"自定义\"}]"
+  },
+  {
+    "id": "workbench.array.task-filters",
+    "source": "r=[{id:\"all\",label:\"All Tasks\",description:\"Everything on the board\"},{id:\"working\",label:\"Working\",description:\"Ready with dependencies satisfied\"},{id:\"blocked\",label:\"Blocked\",description:\"Waiting on a dependency or cycle\"}]",
+    "target": "r=[{id:\"all\",label:\"全部任务\",description:\"看板上的所有内容\"},{id:\"working\",label:\"进行中\",description:\"依赖已满足，可以执行\"},{id:\"blocked\",label:\"已阻塞\",description:\"正在等待依赖或存在循环\"}]"
+  },
+  {
+    "id": "workbench.array.color-options",
+    "source": "Trd=[{id:\"default\",label:\"Default\"},{id:\"green\",label:\"Green\"},{id:\"cyan\",label:\"Cyan\"},{id:\"blue\",label:\"Blue\"},{id:\"purple\",label:\"Purple\"},{id:\"magenta\",label:\"Magenta\"},{id:\"orange\",label:\"Orange\"},{id:\"yellow\",label:\"Yellow\"},{id:\"red\",label:\"Red\"},{id:\"brand\",label:\"Brand\"}]",
+    "target": "Trd=[{id:\"default\",label:\"默认\"},{id:\"green\",label:\"绿色\"},{id:\"cyan\",label:\"青色\"},{id:\"blue\",label:\"蓝色\"},{id:\"purple\",label:\"紫色\"},{id:\"magenta\",label:\"洋红\"},{id:\"orange\",label:\"橙色\"},{id:\"yellow\",label:\"黄色\"},{id:\"red\",label:\"红色\"},{id:\"brand\",label:\"品牌色\"}]"
+  },
+  {
+    "id": "workbench.array.scope-myself",
+    "source": "t=[{id:\"user\",label:\"Myself\",scope:\"user\"}]",
+    "target": "t=[{id:\"user\",label:\"我自己\",scope:\"user\"}]"
+  },
+  {
+    "id": "workbench.array.apply-checkout",
+    "source": "u=[{id:\"apply-all\",label:\"Apply\",tooltip:\"Apply changes locally\",class:void 0,enabled:!e.isLoading,run:()=>r()},{id:\"checkout-branch\",label:\"Checkout Branch\",tooltip:\"Checkout branch locally\",class:void 0,enabled:!e.isLoading,run:()=>e.onCheckoutLocally?.(!1)}]",
+    "target": "u=[{id:\"apply-all\",label:\"应用\",tooltip:\"在本地应用更改\",class:void 0,enabled:!e.isLoading,run:()=>r()},{id:\"checkout-branch\",label:\"检出分支\",tooltip:\"在本地检出分支\",class:void 0,enabled:!e.isLoading,run:()=>e.onCheckoutLocally?.(!1)}]"
+  },
+  {
+    "id": "workbench.switch.always-ask-run",
+    "source": "U=Z=>{switch(Z){case\"alwaysAsk\":return\"Always ask\";case\"alwaysRun\":return\"Always run\";default:return Z}}",
+    "target": "U=Z=>{switch(Z){case\"alwaysAsk\":return\"始终询问\";case\"alwaysRun\":return\"始终运行\";default:return Z}}"
+  },
+  {
+    "id": "workbench.array.view-gallery-icons-list",
+    "source": "Xho=[{id:\"gallery\",label:\"Gallery\",iconName:\"grid\"},{id:\"icon\",label:\"Icons\",iconName:\"folder\"},{id:\"list\",label:\"List\",iconName:\"list-bullets\"}]",
+    "target": "Xho=[{id:\"gallery\",label:\"画廊\",iconName:\"grid\"},{id:\"icon\",label:\"图标\",iconName:\"folder\"},{id:\"list\",label:\"列表\",iconName:\"list-bullets\"}]"
+  },
+  {
+    "id": "workbench.array.share-data-privacy",
+    "source": "O=[{id:L()?\"USAGE_CODEBASE_TRAINING_ALLOWED\":\"USAGE_DATA_TRAINING_ALLOWED\",label:\"Share Data\",jsx:(()=>{var U=hi_(),z=U.firstChild,W=z.nextSibling,V=W.firstChild;return z.style.setProperty(\"font-size\",\"12px\"),W.style.setProperty(\"font-size\",\"10px\"),W.style.setProperty(\"opacity\",\"0.5\"),J(W,j(Ee,{get when(){return E()},children:\". Prompts and limited telemetry may also be shared with model providers when you explicitly select their models\"}),null),U})()},{id:\"NO_TRAINING\",label:\"Privacy Mode\",jsx:(()=>{var U=pi_(),z=U.firstChild,W=z.nextSibling;return z.style.setProperty(\"font-size\",\"12px\"),W.style.setProperty(\"font-size\",\"10px\"),W.style.setProperty(\"opacity\",\"0.5\"),U})()}]",
+    "target": "O=[{id:L()?\"USAGE_CODEBASE_TRAINING_ALLOWED\":\"USAGE_DATA_TRAINING_ALLOWED\",label:\"共享数据\",jsx:(()=>{var U=hi_(),z=U.firstChild,W=z.nextSibling,V=W.firstChild;return z.style.setProperty(\"font-size\",\"12px\"),W.style.setProperty(\"font-size\",\"10px\"),W.style.setProperty(\"opacity\",\"0.5\"),J(W,j(Ee,{get when(){return E()},children:\". 当你显式选择模型时，提示词和有限的遥测数据也可能与模型提供商共享\"}),null),U})()},{id:\"NO_TRAINING\",label:\"隐私模式\",jsx:(()=>{var U=pi_(),z=U.firstChild,W=z.nextSibling;return z.style.setProperty(\"font-size\",\"12px\"),W.style.setProperty(\"font-size\",\"10px\"),W.style.setProperty(\"opacity\",\"0.5\"),U})()}]"
+  },
+  {
+    "id": "workbench.object.multitask-mode",
+    "source": "var uBn={id:\"multitask\",label:\"Multitask\",icon:\"circles\",color:\"purple\",placeholder:\"Coordinate parallel tasks...\",description:\"Uses a fleet of subagents to parallelize requests, instead of adding them to a queue.\"}",
+    "target": "var uBn={id:\"multitask\",label:\"多任务\",icon:\"circles\",color:\"purple\",placeholder:\"协调并行任务...\",description:\"使用一组子智能体来并行处理请求，而不是将它们加入队列。\"}"
+  },
+  {
+    "id": "workbench.object.task-definition",
+    "source": "var _Na={id:_3n,description:\"Task definition file\",type:\"object\",allowTrailingCommas:!0,allowComments:!0,default:{version:\"2.0.0\",tasks:[{label:\"My Task\",command:\"echo hello\",type:\"shell\",args:[],problemMatcher:[\"$tsc\"],presentation:{reveal:\"always\"},group:\"build\"}]}}",
+    "target": "var _Na={id:_3n,description:\"任务定义文件\",type:\"object\",allowTrailingCommas:!0,allowComments:!0,default:{version:\"2.0.0\",tasks:[{label:\"我的任务\",command:\"echo hello\",type:\"shell\",args:[],problemMatcher:[\"$tsc\"],presentation:{reveal:\"always\"},group:\"build\"}]}}"
+  },
+  {
+    "id": "workbench.array.select-all-general",
+    "source": "o=[{id:\"selectAll\",label:\"Select All\",rightSection:Gam(e.keybindingService,Vam.selectAll),onSelect:()=>{const a=e.targetWindow.getSelection();if(a&&e.scrollableContainer){const c=e.targetWindow.document.createRange();c.selectNodeContents(e.scrollableContainer),a.removeAllRanges(),a.addRange(c)}}}]",
+    "target": "o=[{id:\"selectAll\",label:\"全选\",rightSection:Gam(e.keybindingService,Vam.selectAll),onSelect:()=>{const a=e.targetWindow.getSelection();if(a&&e.scrollableContainer){const c=e.targetWindow.document.createRange();c.selectNodeContents(e.scrollableContainer),a.removeAllRanges(),a.addRange(c)}}}]"
+  },
+  {
+    "id": "workbench.array.feedback-actions",
+    "source": "n=[{id:\"fix_in_chat\",label:\"Fix with Agent\",onClick:t?.onFix",
+    "target": "n=[{id:\"fix_in_chat\",label:\"用智能体修复\",onClick:t?.onFix"
   }
 ]
