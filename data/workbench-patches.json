@@ -2311,7 +2311,7 @@
     "target": "description:\"默认启用语言服务器，在智能体工作树工作区中提供代码智能\""
   },
   {
-    "id": "workbench.description.enable-language-server-by-default-to-provide-cod",
+    "id": "workbench.description.enable-language-server-by-default-to-provide-cod.2",
     "source": "description:\"Enable language server by default to provide code intelligence in workspaces\"",
     "target": "description:\"默认启用语言服务器，在工作区中提供代码智能\""
   },
@@ -2339,5 +2339,740 @@
     "id": "workbench.title.execution-log",
     "source": "title:\"Execution Log\"",
     "target": "title:\"执行日志\""
+  },
+  {
+    "id": "workbench.LJs.new-agent-in-project-split-down-split-right-clos",
+    "source": "LJs=[{id:\"new-agent-in-project\",label:\"New Agent in Project\",icon:\"plus\",section:\"create\",surfaces:C1i},{id:\"split-down\",label:\"Split Down\",icon:\"layout-split-vertical\",section:\"window\",surfaces:P0n},{id:\"split-right\",label:\"Split Right\",icon:\"layout-split-horizontal\",section:\"window\",surfaces:P0n},{id:\"close-panel\",label:\"Close Panel\",icon:\"x\",section:\"window\",surfaces:P0n},{id:\"open-agent-in-new-window\",label:\"Open in New Window\",icon:\"link-external\",section:\"window\",surfaces:mjt},{id:\"pin-agent\",label:\"Pin\",icon:\"pin\",section:\"agent\",surfaces:mjt},{id:\"rename-agent\",label:\"重命名\",icon:\"pencil\",section:\"agent\",surfaces:mjt},{id:\"edit-project-icon\",label:\"Edit Icon\",icon:\"smiley-happy\",section:\"agent\",surfaces:C1i},{id:\"mark-read-unread\",label:\"Mark as Read\",icon:\"bell\",section:\"agent\",surfaces:mjt},{id:\"fork-agent\",label:\"Fork\",icon:\"split\",section:\"organization\"},{id:\"move-agent\",label:\"Move to\",icon:\"arrow-swap\",section:\"organization\",surfaces:mjt},{id:\"copy\",label:\"Copy\",icon:\"copy\",section:\"meta\"},{id:\"share-agent\",label:\"Share\",icon:\"arrow-square-from-up\",section:\"meta\"},{id:\"export-agent\",label:\"Export\",icon:\"file-arrow-right-up\",section:\"meta\"},{id:\"open-agent-in-web\",label:\"Open in Web\",icon:\"arrow-right-up\",section:\"meta\"},{id:\"add-to-project\",label:\"Add to Project\",icon:\"cube\",section:\"meta\",surfaces:C1i},{id:\"archive-agent\",label:\"Archive\",icon:\"archive\",section:\"lifecycle\",surfaces:mjt},{id:\"unarchive-agent\",label:\"Unarchive\",icon:\"redo\",section:\"lifecycle\",surfaces:C1i},{id:\"open-prompt-quality\",label:\"在 Prompt Quality 中打开\",icon:\"arrow-right-up\",section:\"dev\",surfaces:P0n},{id:\"open-datadog\",label:\"Open in Datadog\",icon:\"arrow-right-up\",section:\"dev\",surfaces:P0n}]",
+    "target": "LJs=[{id:\"new-agent-in-project\",label:\"在项目中新建智能体\",icon:\"plus\",section:\"create\",surfaces:C1i},{id:\"split-down\",label:\"向下拆分\",icon:\"layout-split-vertical\",section:\"window\",surfaces:P0n},{id:\"split-right\",label:\"向右拆分\",icon:\"layout-split-horizontal\",section:\"window\",surfaces:P0n},{id:\"close-panel\",label:\"关闭面板\",icon:\"x\",section:\"window\",surfaces:P0n},{id:\"open-agent-in-new-window\",label:\"在新窗口中打开\",icon:\"link-external\",section:\"window\",surfaces:mjt},{id:\"pin-agent\",label:\"固定\",icon:\"pin\",section:\"agent\",surfaces:mjt},{id:\"rename-agent\",label:\"重命名\",icon:\"pencil\",section:\"agent\",surfaces:mjt},{id:\"edit-project-icon\",label:\"编辑图标\",icon:\"smiley-happy\",section:\"agent\",surfaces:C1i},{id:\"mark-read-unread\",label:\"标记为已读\",icon:\"bell\",section:\"agent\",surfaces:mjt},{id:\"fork-agent\",label:\"复刻\",icon:\"split\",section:\"organization\"},{id:\"move-agent\",label:\"移动到\",icon:\"arrow-swap\",section:\"organization\",surfaces:mjt},{id:\"copy\",label:\"复制\",icon:\"copy\",section:\"meta\"},{id:\"share-agent\",label:\"分享\",icon:\"arrow-square-from-up\",section:\"meta\"},{id:\"export-agent\",label:\"导出\",icon:\"file-arrow-right-up\",section:\"meta\"},{id:\"open-agent-in-web\",label:\"在网页中打开\",icon:\"arrow-right-up\",section:\"meta\"},{id:\"add-to-project\",label:\"添加到项目\",icon:\"cube\",section:\"meta\",surfaces:C1i},{id:\"archive-agent\",label:\"归档\",icon:\"archive\",section:\"lifecycle\",surfaces:mjt},{id:\"unarchive-agent\",label:\"取消归档\",icon:\"redo\",section:\"lifecycle\",surfaces:C1i},{id:\"open-prompt-quality\",label:\"在 Prompt Quality 中打开\",icon:\"arrow-right-up\",section:\"dev\",surfaces:P0n},{id:\"open-datadog\",label:\"在 Datadog 中打开\",icon:\"arrow-right-up\",section:\"dev\",surfaces:P0n}]"
+  },
+  {
+    "id": "workbench.Wh.you-re-out-of-usage-continue-chatting-in-cursor-",
+    "source": "Wh=he(()=>{if($a())return\"You're out of usage\";if(e.placeholder)return e.placeholder;if(Ht()?.header?.source===\"claude-code\")return\"Continue chatting in Cursor\";const Gn=uo();if(Gn&&g()!==!1&&!P())return Gn;const ws=w(),Cs=ZL();if(Cs)return sro(Cs).placeholder;if(fF())return\"Add more optional details\";if(A6()){const Mc=d4d();if(Mc&&Mc.composerId===ws.composerId){if(Mc.button===\"proceed\")return t.experimentService.getDynamicConfigParam(\"debug_mode_ui_instructions_config\",\"proceed_instructions\",{disableExposureLog:!1})??\"Issue reproduced, please proceed\";if(Mc.button===\"markFixed\")return t.experimentService.getDynamicConfigParam(\"debug_mode_ui_instructions_config\",\"mark_fixed_instructions\",{disableExposureLog:!1})??\"The issue has been fixed. Please clean up the instrumentation.\"}return\"Enter additional context about the issue\"}if(uA().filter(Mc=>Mc.clientSideTool!==Ze.ASK_QUESTION).length>0)return\"Reject, suggest, follow up?\";if(AS()&&ws.applied===!0&&ws.reservedWorktree)return\"Continue locally\";if(hD()&&AS())return\"Ask follow-ups in the worktree\";if(ae())return\"Add a follow-up\";if(o())return\"Plan, Build, / for skills, @ for context\";switch(re()){case\"chat\":return\"提问、学习、头脑风暴\";case\"edit\":return\"Work on explicitly added files (no tools)\";case\"background\":return DGf;case\"agent\":default:return\"规划、搜索、构建任何内容\"}}",
+    "target": "Wh=he(()=>{if($a())return\"用量已用完\";if(e.placeholder)return e.placeholder;if(Ht()?.header?.source===\"claude-code\")return\"在 Cursor 中继续聊天\";const Gn=uo();if(Gn&&g()!==!1&&!P())return Gn;const ws=w(),Cs=ZL();if(Cs)return sro(Cs).placeholder;if(fF())return\"添加更多可选细节\";if(A6()){const Mc=d4d();if(Mc&&Mc.composerId===ws.composerId){if(Mc.button===\"proceed\")return t.experimentService.getDynamicConfigParam(\"debug_mode_ui_instructions_config\",\"proceed_instructions\",{disableExposureLog:!1})??\"问题已复现，请继续\";if(Mc.button===\"markFixed\")return t.experimentService.getDynamicConfigParam(\"debug_mode_ui_instructions_config\",\"mark_fixed_instructions\",{disableExposureLog:!1})??\"问题已修复。请清理插桩。\"}return\"输入问题的更多背景信息\"}if(uA().filter(Mc=>Mc.clientSideTool!==Ze.ASK_QUESTION).length>0)return\"拒绝、建议、追问？\";if(AS()&&ws.applied===!0&&ws.reservedWorktree)return\"在本地继续\";if(hD()&&AS())return\"在工作树中追问\";if(ae())return\"添加追问\";if(o())return\"规划、构建，/ 唤出技能，@ 引用上下文\";switch(re()){case\"chat\":return\"提问、学习、头脑风暴\";case\"edit\":return\"仅处理明确添加的文件 (不使用工具)\";case\"background\":return DGf;case\"agent\":default:return\"规划、搜索、构建任何内容\"}}"
+  },
+  {
+    "id": "workbench.Ad.you-re-out-of-usage-continue-chatting-in-cursor-",
+    "source": "Ad=Fe(()=>{if(Rs())return\"You're out of usage\";if(t.placeholder)return t.placeholder;if(Qe()?.header?.source===\"claude-code\")return\"Continue chatting in Cursor\";const Ai=vo();if(Ai&&m()!==!1&&!I())return Ai;const Gr=_(),Jr=dv();if(Jr)return zui(Jr).placeholder;if(sy())return\"Add more optional details\";if(Cw()){const Il=Vxa();if(Il&&Il.composerId===Gr.composerId){if(Il.button===\"proceed\")return e.experimentService.getDynamicConfigParam(\"debug_mode_ui_instructions_config\",\"proceed_instructions\",{disableExposureLog:!1})??\"Issue reproduced, please proceed\";if(Il.button===\"markFixed\")return e.experimentService.getDynamicConfigParam(\"debug_mode_ui_instructions_config\",\"mark_fixed_instructions\",{disableExposureLog:!1})??\"The issue has been fixed. Please clean up the instrumentation.\"}return\"Enter additional context about the issue\"}if(Fv().filter(Il=>Il.clientSideTool!==Ct.ASK_QUESTION).length>0)return\"Reject, suggest, follow up?\";if(nm()&&Gr.applied===!0&&Gr.reservedWorktree)return\"Continue locally\";if(Lg()&&nm())return\"Ask follow-ups in the worktree\";if(te())return\"Add a follow-up\";if(o())return\"Plan, Build, / for skills, @ for context\";switch(ee()){case\"chat\":return\"提问、学习、头脑风暴\";case\"edit\":return\"Work on explicitly added files (no tools)\";case\"background\":return t9h;case\"agent\":default:return\"规划、搜索、构建任何内容\"}}",
+    "target": "Ad=Fe(()=>{if(Rs())return\"用量已用完\";if(t.placeholder)return t.placeholder;if(Qe()?.header?.source===\"claude-code\")return\"在 Cursor 中继续聊天\";const Ai=vo();if(Ai&&m()!==!1&&!I())return Ai;const Gr=_(),Jr=dv();if(Jr)return zui(Jr).placeholder;if(sy())return\"添加更多可选细节\";if(Cw()){const Il=Vxa();if(Il&&Il.composerId===Gr.composerId){if(Il.button===\"proceed\")return e.experimentService.getDynamicConfigParam(\"debug_mode_ui_instructions_config\",\"proceed_instructions\",{disableExposureLog:!1})??\"问题已复现，请继续\";if(Il.button===\"markFixed\")return e.experimentService.getDynamicConfigParam(\"debug_mode_ui_instructions_config\",\"mark_fixed_instructions\",{disableExposureLog:!1})??\"问题已修复。请清理插桩。\"}return\"输入问题的更多背景信息\"}if(Fv().filter(Il=>Il.clientSideTool!==Ct.ASK_QUESTION).length>0)return\"拒绝、建议、追问？\";if(nm()&&Gr.applied===!0&&Gr.reservedWorktree)return\"在本地继续\";if(Lg()&&nm())return\"在工作树中追问\";if(te())return\"添加追问\";if(o())return\"规划、构建，/ 唤出技能，@ 引用上下文\";switch(ee()){case\"chat\":return\"提问、学习、头脑风暴\";case\"edit\":return\"仅处理明确添加的文件 (不使用工具)\";case\"background\":return t9h;case\"agent\":default:return\"规划、搜索、构建任何内容\"}}"
+  },
+  {
+    "id": "workbench.rte.plan-new-idea-multitask-run-in-cloud",
+    "source": "rte=fM(()=>{if(!ti.renderFooterActions||jW)return[];if(Ws)return[{cta:\"set_up_cloud\",icon:Ws.icon,label:Ws.label,onClick:Ws.onClick,placement:\"before_drafts\",treatment:Ws.treatment,tooltipContent:Ws.tooltipContent,tooltipIsPreviewCard:Ws.tooltipIsPreviewCard}];const jo=[];return Fre.isShown&&gR&&jo.push({cta:\"start_onboarding\",icon:gR.icon,label:gR.label,onClick:Fre.handleClick,placement:\"before_drafts\"}),AA&&jo.push({cta:\"set_up_agent_demos\",disabled:AA.disabled,icon:AA.icon,label:AA.label,loading:AA.loading,onClick:AA.onClick,placement:\"before_drafts\",treatment:AA.treatment,tooltipContent:QU,tooltipIsPreviewCard:!0}),qe!==\"plan\"&&jo.push({cta:\"plan_new_idea\",label:\"Plan New Idea\",hint:\"\\u21E7Tab\",onClick:S6,placement:\"before_drafts\"}),o0k({multitaskModeAvailable:!l4,isMultitaskModeSelected:qe===\"multitask\",isCloudAgent:fq})&&jo.push({cta:\"multitask\",label:\"Multitask\",onClick:Bre,placement:\"before_drafts\"}),es||(Un?jo.push({cta:\"run_in_cloud\",label:\"Run in Cloud\",onClick:Ure,placement:\"after_drafts\"}):Mi.status===\"needs_github_connect\"&&jo.push({cta:\"run_in_cloud\",label:\"Run in Cloud\",onClick:Gre,placement:\"after_drafts\"})),ste.kind===\"open_design_mode\"&&jo.push({cta:\"open_design_mode\",label:ste.label,onClick:ste.onClick,placement:\"after_drafts\"}),jo}",
+    "target": "rte=fM(()=>{if(!ti.renderFooterActions||jW)return[];if(Ws)return[{cta:\"set_up_cloud\",icon:Ws.icon,label:Ws.label,onClick:Ws.onClick,placement:\"before_drafts\",treatment:Ws.treatment,tooltipContent:Ws.tooltipContent,tooltipIsPreviewCard:Ws.tooltipIsPreviewCard}];const jo=[];return Fre.isShown&&gR&&jo.push({cta:\"start_onboarding\",icon:gR.icon,label:gR.label,onClick:Fre.handleClick,placement:\"before_drafts\"}),AA&&jo.push({cta:\"set_up_agent_demos\",disabled:AA.disabled,icon:AA.icon,label:AA.label,loading:AA.loading,onClick:AA.onClick,placement:\"before_drafts\",treatment:AA.treatment,tooltipContent:QU,tooltipIsPreviewCard:!0}),qe!==\"plan\"&&jo.push({cta:\"plan_new_idea\",label:\"规划新想法\",hint:\"\\u21E7Tab\",onClick:S6,placement:\"before_drafts\"}),o0k({multitaskModeAvailable:!l4,isMultitaskModeSelected:qe===\"multitask\",isCloudAgent:fq})&&jo.push({cta:\"multitask\",label:\"多任务\",onClick:Bre,placement:\"before_drafts\"}),es||(Un?jo.push({cta:\"run_in_cloud\",label:\"在云端运行\",onClick:Ure,placement:\"after_drafts\"}):Mi.status===\"needs_github_connect\"&&jo.push({cta:\"run_in_cloud\",label:\"在云端运行\",onClick:Gre,placement:\"after_drafts\"})),ste.kind===\"open_design_mode\"&&jo.push({cta:\"open_design_mode\",label:ste.label,onClick:ste.onClick,placement:\"after_drafts\"}),jo}"
+  },
+  {
+    "id": "workbench.Vt.installed",
+    "source": "Vt=bq(()=>{if(ae===\"plugins\"){const sr=ue?aHe(l.filter(wr=>wr.displayName.toLowerCase().includes(te)),te,wr=>({value:wr.displayName})):l;return sr.length===0?[]:[{key:\"plugins\",title:\"Installed\",addLabel:\"Add\",removable:!0,items:sr.map(wr=>({kind:\"plugin\",id:wr.id,plugin:wr}))}]}if(ae===\"mcps\")return[];if(a===void 0)return[];const xn=lCn[ae];if(xn===void 0)return[];const zn={skill:a.skills,rule:a.rules,subagent:a.subagents,mcp:a.mcps,command:a.commands},hi=xn===\"mcp\"?void 0:xn,Bi=zn[xn],dr=new Set(Bi.filter(sr=>sr.scope===\"plugin\"&&sr.ownerWorkspaceId===void 0&&it(sr)).map(oCn)),pn=Bi.filter(sr=>Je(sr,{globalPluginSourceKeys:dr})&&mtd(sr,st)&&(!ue||sr.name.toLowerCase().includes(te))),Ii=`Team ${ke?.label??\"\"}`.trim(),fr=ue?aHe(pn,te,sr=>({value:sr.name})):Ttd(pn,De.sortBy,g,Jt,Ii),li=xn===\"skill\"||xn===\"subagent\"||xn===\"command\";return Atd(fr,De.groupBy,g,\"\",hi,Jt,Ii,void 0,{splitProjectGroupsByWorkspace:r.kind===\"workspaces\"||r.kind===\"sources\",splitPluginGroupsByPlugin:li,resolvePluginGroup:li?sr=>{const wr=r$s(sr,l);if(wr===void 0)return;const xo=Dpt(wr.displayName,wr.name);return xo===void 0?void 0:{key:wr.id,title:xo}}:void 0})}",
+    "target": "Vt=bq(()=>{if(ae===\"plugins\"){const sr=ue?aHe(l.filter(wr=>wr.displayName.toLowerCase().includes(te)),te,wr=>({value:wr.displayName})):l;return sr.length===0?[]:[{key:\"plugins\",title:\"已安装\",addLabel:\"添加\",removable:!0,items:sr.map(wr=>({kind:\"plugin\",id:wr.id,plugin:wr}))}]}if(ae===\"mcps\")return[];if(a===void 0)return[];const xn=lCn[ae];if(xn===void 0)return[];const zn={skill:a.skills,rule:a.rules,subagent:a.subagents,mcp:a.mcps,command:a.commands},hi=xn===\"mcp\"?void 0:xn,Bi=zn[xn],dr=new Set(Bi.filter(sr=>sr.scope===\"plugin\"&&sr.ownerWorkspaceId===void 0&&it(sr)).map(oCn)),pn=Bi.filter(sr=>Je(sr,{globalPluginSourceKeys:dr})&&mtd(sr,st)&&(!ue||sr.name.toLowerCase().includes(te))),Ii=`Team ${ke?.label??\"\"}`.trim(),fr=ue?aHe(pn,te,sr=>({value:sr.name})):Ttd(pn,De.sortBy,g,Jt,Ii),li=xn===\"skill\"||xn===\"subagent\"||xn===\"command\";return Atd(fr,De.groupBy,g,\"\",hi,Jt,Ii,void 0,{splitProjectGroupsByWorkspace:r.kind===\"workspaces\"||r.kind===\"sources\",splitPluginGroupsByPlugin:li,resolvePluginGroup:li?sr=>{const wr=r$s(sr,l);if(wr===void 0)return;const xo=Dpt(wr.displayName,wr.name);return xo===void 0?void 0:{key:wr.id,title:xo}}:void 0})}"
+  },
+  {
+    "id": "workbench.nt.installed",
+    "source": "nt=Sse(()=>{if(te===\"plugins\"){const ln=ie?yZe(c.filter(hn=>hn.displayName.toLowerCase().includes(Y)),Y,hn=>({value:hn.displayName})):c;return ln.length===0?[]:[{key:\"plugins\",title:\"Installed\",addLabel:\"Add\",removable:!0,items:ln.map(hn=>({kind:\"plugin\",id:hn.id,plugin:hn}))}]}if(te===\"mcps\")return[];if(a===void 0)return[];const Nt=hli[te];if(Nt===void 0)return[];const nn={skill:a.skills,rule:a.rules,subagent:a.subagents,mcp:a.mcps,command:a.commands},En=Nt===\"mcp\"?void 0:Nt,wn=nn[Nt],Tn=new Set(wn.filter(ln=>ln.scope===\"plugin\"&&ln.ownerWorkspaceId===void 0&&Ae(ln)).map(cli)),Ft=wn.filter(ln=>Ee(ln,{globalPluginSourceKeys:Tn})&&Zwh(ln,Re)&&(!ie||ln.name.toLowerCase().includes(Y))),fn=`Team ${ce?.label??\"\"}`.trim(),Sn=ie?yZe(Ft,Y,ln=>({value:ln.name})):uSh(Ft,ge.sortBy,m,pt,fn),sn=Nt===\"skill\"||Nt===\"subagent\"||Nt===\"command\";return dSh(Sn,ge.groupBy,m,\"\",En,pt,fn,void 0,{splitProjectGroupsByWorkspace:s.kind===\"workspaces\"||s.kind===\"sources\",splitPluginGroupsByPlugin:sn,resolvePluginGroup:sn?ln=>{const hn=Ova(ln,c);if(hn===void 0)return;const On=VBt(hn.displayName,hn.name);return On===void 0?void 0:{key:hn.id,title:On}}:void 0})}",
+    "target": "nt=Sse(()=>{if(te===\"plugins\"){const ln=ie?yZe(c.filter(hn=>hn.displayName.toLowerCase().includes(Y)),Y,hn=>({value:hn.displayName})):c;return ln.length===0?[]:[{key:\"plugins\",title:\"已安装\",addLabel:\"添加\",removable:!0,items:ln.map(hn=>({kind:\"plugin\",id:hn.id,plugin:hn}))}]}if(te===\"mcps\")return[];if(a===void 0)return[];const Nt=hli[te];if(Nt===void 0)return[];const nn={skill:a.skills,rule:a.rules,subagent:a.subagents,mcp:a.mcps,command:a.commands},En=Nt===\"mcp\"?void 0:Nt,wn=nn[Nt],Tn=new Set(wn.filter(ln=>ln.scope===\"plugin\"&&ln.ownerWorkspaceId===void 0&&Ae(ln)).map(cli)),Ft=wn.filter(ln=>Ee(ln,{globalPluginSourceKeys:Tn})&&Zwh(ln,Re)&&(!ie||ln.name.toLowerCase().includes(Y))),fn=`Team ${ce?.label??\"\"}`.trim(),Sn=ie?yZe(Ft,Y,ln=>({value:ln.name})):uSh(Ft,ge.sortBy,m,pt,fn),sn=Nt===\"skill\"||Nt===\"subagent\"||Nt===\"command\";return dSh(Sn,ge.groupBy,m,\"\",En,pt,fn,void 0,{splitProjectGroupsByWorkspace:s.kind===\"workspaces\"||s.kind===\"sources\",splitPluginGroupsByPlugin:sn,resolvePluginGroup:sn?ln=>{const hn=Ova(ln,c);if(hn===void 0)return;const On=VBt(hn.displayName,hn.name);return On===void 0?void 0:{key:hn.id,title:On}}:void 0})}"
+  },
+  {
+    "id": "workbench.Je.undo-apply-keep-apply",
+    "source": "Je=he(()=>{const ze=[];return Z()?K()&&ze.push({id:\"undo-action\",title:\"Undo Apply\",isDisabled:me(),hintText:ve(),onClick:async()=>{const tt=s();await t.composerService.undoAllAppliedChanges(tt),He()}}):te()&&ze.push({id:\"undo-action\",title:K()?\"Undo Apply\":\"Undo\",isDisabled:me(),hintText:K()?ve():void 0,onClick:async()=>{const tt=s(),gt=t.composerDataService.getComposerData(i());if(gt?.applied&&gt?.appliedDiffs&&gt.appliedDiffs.length>0){await t.composerService.undoAllAppliedChanges(tt);return}e.onRejectAllOverrideClick?e.onRejectAllOverrideClick():n.rejectAll(tt),He()}}),ee()&&ze.push({id:\"keep-action\",title:\"Keep\",isDisabled:ae(),hintText:\"Accept all changes\",onClick:async()=>{const tt=s();He(),await n.acceptAll(tt),await z2e(t,\"composer\")}}),ue()&&ze.push({id:\"apply-action\",title:\"Apply\",isDisabled:ae(),hintText:\"将更改应用到主工作目录\",onClick:async()=>{const tt=s();await t.composerService.applyWorktreeToCurrentBranch(tt),He()}}),ze.length===0?[]:[{type:\"items\",items:ze}]}",
+    "target": "Je=he(()=>{const ze=[];return Z()?K()&&ze.push({id:\"undo-action\",title:\"撤销应用\",isDisabled:me(),hintText:ve(),onClick:async()=>{const tt=s();await t.composerService.undoAllAppliedChanges(tt),He()}}):te()&&ze.push({id:\"undo-action\",title:K()?\"Undo Apply\":\"撤销\",isDisabled:me(),hintText:K()?ve():void 0,onClick:async()=>{const tt=s(),gt=t.composerDataService.getComposerData(i());if(gt?.applied&&gt?.appliedDiffs&&gt.appliedDiffs.length>0){await t.composerService.undoAllAppliedChanges(tt);return}e.onRejectAllOverrideClick?e.onRejectAllOverrideClick():n.rejectAll(tt),He()}}),ee()&&ze.push({id:\"keep-action\",title:\"保留\",isDisabled:ae(),hintText:\"接受所有更改\",onClick:async()=>{const tt=s();He(),await n.acceptAll(tt),await z2e(t,\"composer\")}}),ue()&&ze.push({id:\"apply-action\",title:\"应用\",isDisabled:ae(),hintText:\"将更改应用到主工作目录\",onClick:async()=>{const tt=s();await t.composerService.applyWorktreeToCurrentBranch(tt),He()}}),ze.length===0?[]:[{type:\"items\",items:ze}]}"
+  },
+  {
+    "id": "workbench.Ee.undo-apply-keep-apply",
+    "source": "Ee=Fe(()=>{const xe=[];return V()?q()&&xe.push({id:\"undo-action\",title:\"Undo Apply\",isDisabled:se(),hintText:ae(),onClick:async()=>{const Ie=r();await e.composerService.undoAllAppliedChanges(Ie),we()}}):Y()&&xe.push({id:\"undo-action\",title:q()?\"Undo Apply\":\"Undo\",isDisabled:se(),hintText:q()?ae():void 0,onClick:async()=>{const Ie=r(),Ne=e.composerDataService.getComposerData(i());if(Ne?.applied&&Ne?.appliedDiffs&&Ne.appliedDiffs.length>0){await e.composerService.undoAllAppliedChanges(Ie);return}t.onRejectAllOverrideClick?t.onRejectAllOverrideClick():n.rejectAll(Ie),we()}}),Z()&&xe.push({id:\"keep-action\",title:\"Keep\",isDisabled:te(),hintText:\"Accept all changes\",onClick:async()=>{const Ie=r();we(),await n.acceptAll(Ie),await gXe(e,\"composer\")}}),ie()&&xe.push({id:\"apply-action\",title:\"Apply\",isDisabled:te(),hintText:\"将更改应用到主工作目录\",onClick:async()=>{const Ie=r();await e.composerService.applyWorktreeToCurrentBranch(Ie),we()}}),xe.length===0?[]:[{type:\"items\",items:xe}]}",
+    "target": "Ee=Fe(()=>{const xe=[];return V()?q()&&xe.push({id:\"undo-action\",title:\"撤销应用\",isDisabled:se(),hintText:ae(),onClick:async()=>{const Ie=r();await e.composerService.undoAllAppliedChanges(Ie),we()}}):Y()&&xe.push({id:\"undo-action\",title:q()?\"Undo Apply\":\"撤销\",isDisabled:se(),hintText:q()?ae():void 0,onClick:async()=>{const Ie=r(),Ne=e.composerDataService.getComposerData(i());if(Ne?.applied&&Ne?.appliedDiffs&&Ne.appliedDiffs.length>0){await e.composerService.undoAllAppliedChanges(Ie);return}t.onRejectAllOverrideClick?t.onRejectAllOverrideClick():n.rejectAll(Ie),we()}}),Z()&&xe.push({id:\"keep-action\",title:\"保留\",isDisabled:te(),hintText:\"接受所有更改\",onClick:async()=>{const Ie=r();we(),await n.acceptAll(Ie),await gXe(e,\"composer\")}}),ie()&&xe.push({id:\"apply-action\",title:\"应用\",isDisabled:te(),hintText:\"将更改应用到主工作目录\",onClick:async()=>{const Ie=r();await e.composerService.applyWorktreeToCurrentBranch(Ie),we()}}),xe.length===0?[]:[{type:\"items\",items:xe}]}"
+  },
+  {
+    "id": "workbench.nn.start-new-chat-conversation-corrupted",
+    "source": "nn=he(()=>{const Gn=w();if(!Gn)return;if(Gn.hasCorruptedCheckpoints)return{title:\"Conversation Corrupted\",message:\"This conversation has corrupted data. You can view and export it, but new messages cannot be sent. Please start a new conversation to continue.\",extraButtons:[{label:\"Start New Chat\",variant:\"primary\",callback:()=>{t.commandService.executeCommand(\"composer.createNew\")}}]};if(Gn.submitErrorDetails!==void 0)return Gn.submitErrorDetails;if(Gn.text!==\"\")return;const ws=Gn.fullConversationHeadersOnly;if(e.bubbleId){const mo=_i(()=>{const Mc=ws.findIndex(Rl=>Rl.bubbleId===e.bubbleId);if(Mc!==-1){const Rl=Gn.conversationMap;for(let dl=Mc+1;dl<ws.length;dl++)if(Rl[ws[dl].bubbleId]?.type===$r.AI)return ws[dl].bubbleId}});if(mo)return Gn.conversationMap[mo]?.errorDetails}const Cs=en?.();if(Cs)return n.getComposerBubble(_(),Cs)?.errorDetails}",
+    "target": "nn=he(()=>{const Gn=w();if(!Gn)return;if(Gn.hasCorruptedCheckpoints)return{title:\"对话已损坏\",message:\"此对话的数据已损坏。你可以查看和导出，但无法发送新消息。请新建对话以继续。\",extraButtons:[{label:\"新建聊天\",variant:\"primary\",callback:()=>{t.commandService.executeCommand(\"composer.createNew\")}}]};if(Gn.submitErrorDetails!==void 0)return Gn.submitErrorDetails;if(Gn.text!==\"\")return;const ws=Gn.fullConversationHeadersOnly;if(e.bubbleId){const mo=_i(()=>{const Mc=ws.findIndex(Rl=>Rl.bubbleId===e.bubbleId);if(Mc!==-1){const Rl=Gn.conversationMap;for(let dl=Mc+1;dl<ws.length;dl++)if(Rl[ws[dl].bubbleId]?.type===$r.AI)return ws[dl].bubbleId}});if(mo)return Gn.conversationMap[mo]?.errorDetails}const Cs=en?.();if(Cs)return n.getComposerBubble(_(),Cs)?.errorDetails}"
+  },
+  {
+    "id": "workbench.gt.start-new-chat-conversation-corrupted",
+    "source": "gt=Fe(()=>{const Ai=_();if(!Ai)return;if(Ai.hasCorruptedCheckpoints)return{title:\"Conversation Corrupted\",message:\"This conversation has corrupted data. You can view and export it, but new messages cannot be sent. Please start a new conversation to continue.\",extraButtons:[{label:\"Start New Chat\",variant:\"primary\",callback:()=>{e.commandService.executeCommand(\"composer.createNew\")}}]};if(Ai.submitErrorDetails!==void 0)return Ai.submitErrorDetails;if(Ai.text!==\"\")return;const Gr=Ai.fullConversationHeadersOnly;if(t.bubbleId){const Vo=xs(()=>{const Il=Gr.findIndex(Mc=>Mc.bubbleId===t.bubbleId);if(Il!==-1){const Mc=Ai.conversationMap;for(let ic=Il+1;ic<Gr.length;ic++)if(Mc[Gr[ic].bubbleId]?.type===kr.AI)return Gr[ic].bubbleId}});if(Vo)return Ai.conversationMap[Vo]?.errorDetails}const Jr=lt?.();if(Jr)return n.getComposerBubble(b(),Jr)?.errorDetails}",
+    "target": "gt=Fe(()=>{const Ai=_();if(!Ai)return;if(Ai.hasCorruptedCheckpoints)return{title:\"对话已损坏\",message:\"此对话的数据已损坏。你可以查看和导出，但无法发送新消息。请新建对话以继续。\",extraButtons:[{label:\"新建聊天\",variant:\"primary\",callback:()=>{e.commandService.executeCommand(\"composer.createNew\")}}]};if(Ai.submitErrorDetails!==void 0)return Ai.submitErrorDetails;if(Ai.text!==\"\")return;const Gr=Ai.fullConversationHeadersOnly;if(t.bubbleId){const Vo=xs(()=>{const Il=Gr.findIndex(Mc=>Mc.bubbleId===t.bubbleId);if(Il!==-1){const Mc=Ai.conversationMap;for(let ic=Il+1;ic<Gr.length;ic++)if(Mc[Gr[ic].bubbleId]?.type===kr.AI)return Gr[ic].bubbleId}});if(Vo)return Ai.conversationMap[Vo]?.errorDetails}const Jr=lt?.();if(Jr)return n.getComposerBubble(b(),Jr)?.errorDetails}"
+  },
+  {
+    "id": "workbench.uLb.agent-will-ask-for-approval-before-running-tools",
+    "source": "function uLb(e){switch(e){case gm.ASK_EVERY_TIME:return\"Agent will ask for approval before running tools.\";case gm.YOLO:return\"Commands that are allowlisted will run automatically.\";case gm.YOLO_WITH_SANDBOX:return\"Many commands will run automatically inside the sandbox, and you can also allowlist other actions.\";case gm.SMART_AUTO:return\"A classifier will run for each action and decide whether it's safe to execute this command. Allowlists are still respected.\";case gm.SMART_AUTO_WITH_SANDBOX:return\"Many commands will run automatically inside the sandbox, and a classifier will run for the actions that cannot run in the sandbox. Allowlists are still respected.\";case gm.FULL_YOLO:return\"All commands will run without approval, classification or sandboxing.\";default:return\"\"}}",
+    "target": "function uLb(e){switch(e){case gm.ASK_EVERY_TIME:return\"智能体运行工具前会请求批准。\";case gm.YOLO:return\"允许列表中的命令将自动运行。\";case gm.YOLO_WITH_SANDBOX:return\"许多命令将在沙箱内自动运行，你也可以将其他操作加入允许列表。\";case gm.SMART_AUTO:return\"将为每个操作运行分类器，判断执行该命令是否安全。允许列表仍然生效。\";case gm.SMART_AUTO_WITH_SANDBOX:return\"许多命令将在沙箱内自动运行，无法在沙箱中运行的操作将由分类器判断。允许列表仍然生效。\";case gm.FULL_YOLO:return\"所有命令将在无批准、无分类、无沙箱的情况下运行。\";default:return\"\"}}"
+  },
+  {
+    "id": "workbench.WGy.agent-will-ask-for-approval-before-running-tools",
+    "source": "function WGy(t){switch(t){case Sf.ASK_EVERY_TIME:return\"Agent will ask for approval before running tools.\";case Sf.YOLO:return\"Commands that are allowlisted will run automatically.\";case Sf.YOLO_WITH_SANDBOX:return\"Many commands will run automatically inside the sandbox, and you can also allowlist other actions.\";case Sf.SMART_AUTO:return\"A classifier will run for each action and decide whether it's safe to execute this command. Allowlists are still respected.\";case Sf.SMART_AUTO_WITH_SANDBOX:return\"Many commands will run automatically inside the sandbox, and a classifier will run for the actions that cannot run in the sandbox. Allowlists are still respected.\";case Sf.FULL_YOLO:return\"All commands will run without approval, classification or sandboxing.\";default:return\"\"}}",
+    "target": "function WGy(t){switch(t){case Sf.ASK_EVERY_TIME:return\"智能体运行工具前会请求批准。\";case Sf.YOLO:return\"允许列表中的命令将自动运行。\";case Sf.YOLO_WITH_SANDBOX:return\"许多命令将在沙箱内自动运行，你也可以将其他操作加入允许列表。\";case Sf.SMART_AUTO:return\"将为每个操作运行分类器，判断执行该命令是否安全。允许列表仍然生效。\";case Sf.SMART_AUTO_WITH_SANDBOX:return\"许多命令将在沙箱内自动运行，无法在沙箱中运行的操作将由分类器判断。允许列表仍然生效。\";case Sf.FULL_YOLO:return\"所有命令将在无批准、无分类、无沙箱的情况下运行。\";default:return\"\"}}"
+  },
+  {
+    "id": "workbench.Q.files-changed-outside-of-conversations",
+    "source": "Q=he(()=>{const Pe=a(),qe=K();if(Pe.length===0)return null;const ut=new Set;for(const Ht of qe)for(const en of Ht.resources){const nn=en.goToFileUri?.path||en.modifiedUri?.path||en.originalUri?.path||\"\";if(nn){const En=nn.replace(/^\\//,\"\").replace(/\\\\/g,\"/\");ut.add(En)}}const Lt=[];for(const Ht of Pe){const en=Ht.goToFileUri?.path||Ht.modifiedUri?.path||Ht.originalUri?.path||\"\";if(en){const nn=en.replace(/^\\//,\"\").replace(/\\\\/g,\"/\");Array.from(ut).some(mn=>nn===mn||nn.endsWith(mn)||mn.endsWith(nn))||Lt.push(Ht)}}return Lt.length===0?null:{title:\"Files changed outside of conversations\",description:void 0,resources:Lt}}",
+    "target": "Q=he(()=>{const Pe=a(),qe=K();if(Pe.length===0)return null;const ut=new Set;for(const Ht of qe)for(const en of Ht.resources){const nn=en.goToFileUri?.path||en.modifiedUri?.path||en.originalUri?.path||\"\";if(nn){const En=nn.replace(/^\\//,\"\").replace(/\\\\/g,\"/\");ut.add(En)}}const Lt=[];for(const Ht of Pe){const en=Ht.goToFileUri?.path||Ht.modifiedUri?.path||Ht.originalUri?.path||\"\";if(en){const nn=en.replace(/^\\//,\"\").replace(/\\\\/g,\"/\");Array.from(ut).some(mn=>nn===mn||nn.endsWith(mn)||mn.endsWith(nn))||Lt.push(Ht)}}return Lt.length===0?null:{title:\"对话之外更改的文件\",description:void 0,resources:Lt}}"
+  },
+  {
+    "id": "workbench.G.files-changed-outside-of-conversations",
+    "source": "G=Fe(()=>{const fe=a(),Pe=q();if(fe.length===0)return null;const Ce=new Set;for(const Qe of Pe)for(const lt of Qe.resources){const gt=lt.goToFileUri?.path||lt.modifiedUri?.path||lt.originalUri?.path||\"\";if(gt){const yt=gt.replace(/^\\//,\"\").replace(/\\\\/g,\"/\");Ce.add(yt)}}const Me=[];for(const Qe of fe){const lt=Qe.goToFileUri?.path||Qe.modifiedUri?.path||Qe.originalUri?.path||\"\";if(lt){const gt=lt.replace(/^\\//,\"\").replace(/\\\\/g,\"/\");Array.from(Ce).some(bt=>gt===bt||gt.endsWith(bt)||bt.endsWith(gt))||Me.push(Qe)}}return Me.length===0?null:{title:\"Files changed outside of conversations\",description:void 0,resources:Me}}",
+    "target": "G=Fe(()=>{const fe=a(),Pe=q();if(fe.length===0)return null;const Ce=new Set;for(const Qe of Pe)for(const lt of Qe.resources){const gt=lt.goToFileUri?.path||lt.modifiedUri?.path||lt.originalUri?.path||\"\";if(gt){const yt=gt.replace(/^\\//,\"\").replace(/\\\\/g,\"/\");Ce.add(yt)}}const Me=[];for(const Qe of fe){const lt=Qe.goToFileUri?.path||Qe.modifiedUri?.path||Qe.originalUri?.path||\"\";if(lt){const gt=lt.replace(/^\\//,\"\").replace(/\\\\/g,\"/\");Array.from(Ce).some(bt=>gt===bt||gt.endsWith(bt)||bt.endsWith(gt))||Me.push(Qe)}}return Me.length===0?null:{title:\"对话之外更改的文件\",description:void 0,resources:Me}}"
+  },
+  {
+    "id": "workbench.a_v.ask-for-permission-before-running-each-operation",
+    "source": "function a_v(e,t){switch(e){case jS.ASK_EVERY_TIME:return\"Ask for permission before running each operation\";case jS.USE_ALLOWLIST:return t?\"Tools will auto-run in a sandbox if possible, otherwise respect the allowlist or ask for approval\":\"Automatically run operations after you approve them once\";case jS.SMART_AUTO:return t?\"Automatically run operations that Auto-review classifies as safe, using sandboxing when possible\":\"Automatically run operations that Auto-review classifies as safe\";case jS.RUN_EVERYTHING:return\"Automatically run all operations without asking for permission\";default:{const n=e;return\"\"}}}",
+    "target": "function a_v(e,t){switch(e){case jS.ASK_EVERY_TIME:return\"每次运行操作前询问权限\";case jS.USE_ALLOWLIST:return t?\"工具将尽可能在沙箱中自动运行，否则遵循允许列表或请求批准\":\"批准一次后自动运行操作\";case jS.SMART_AUTO:return t?\"自动运行自动审查判定为安全的操作，并尽可能使用沙箱\":\"自动运行自动审查判定为安全的操作\";case jS.RUN_EVERYTHING:return\"无需询问权限即自动运行所有操作\";default:{const n=e;return\"\"}}}"
+  },
+  {
+    "id": "workbench.dPy.ask-for-permission-before-running-each-operation",
+    "source": "function dPy(t,e){switch(t){case RS.ASK_EVERY_TIME:return\"Ask for permission before running each operation\";case RS.USE_ALLOWLIST:return e?\"Tools will auto-run in a sandbox if possible, otherwise respect the allowlist or ask for approval\":\"Automatically run operations after you approve them once\";case RS.SMART_AUTO:return e?\"Automatically run operations that Auto-review classifies as safe, using sandboxing when possible\":\"Automatically run operations that Auto-review classifies as safe\";case RS.RUN_EVERYTHING:return\"Automatically run all operations without asking for permission\";default:{const n=t;return\"\"}}}",
+    "target": "function dPy(t,e){switch(t){case RS.ASK_EVERY_TIME:return\"每次运行操作前询问权限\";case RS.USE_ALLOWLIST:return e?\"工具将尽可能在沙箱中自动运行，否则遵循允许列表或请求批准\":\"批准一次后自动运行操作\";case RS.SMART_AUTO:return e?\"自动运行自动审查判定为安全的操作，并尽可能使用沙箱\":\"自动运行自动审查判定为安全的操作\";case RS.RUN_EVERYTHING:return\"无需询问权限即自动运行所有操作\";default:{const n=t;return\"\"}}}"
+  },
+  {
+    "id": "workbench.n.fix-with-agent-dismiss-thumbs-up-thumbs-down",
+    "source": "n=[{id:\"fix_in_chat\",label:\"Fix with Agent\",onClick:e?.onFixInChat},{id:\"dismiss\",label:\"Dismiss\",onClick:e?.onDismiss},{id:\"thumbs_up\",label:\"Thumbs Up\",icon:\"thumbsup\",iconOnly:!0,position:\"right\",togglable:!0,pressed:e?.thumbsState===\"up\",pressedClass:\"bugbot-thumbs-up-pressed\",onClick:e?.onThumbsUp},{id:\"thumbs_down\",label:\"Thumbs Down\",icon:\"thumbsdown\",iconOnly:!0,position:\"right\",togglable:!0,pressed:e?.thumbsState===\"down\",pressedClass:\"bugbot-thumbs-down-pressed\",onClick:e?.onThumbsDown}]",
+    "target": "n=[{id:\"fix_in_chat\",label:\"用智能体修复\",onClick:e?.onFixInChat},{id:\"dismiss\",label:\"忽略\",onClick:e?.onDismiss},{id:\"thumbs_up\",label:\"点赞\",icon:\"thumbsup\",iconOnly:!0,position:\"right\",togglable:!0,pressed:e?.thumbsState===\"up\",pressedClass:\"bugbot-thumbs-up-pressed\",onClick:e?.onThumbsUp},{id:\"thumbs_down\",label:\"点踩\",icon:\"thumbsdown\",iconOnly:!0,position:\"right\",togglable:!0,pressed:e?.thumbsState===\"down\",pressedClass:\"bugbot-thumbs-down-pressed\",onClick:e?.onThumbsDown}]"
+  },
+  {
+    "id": "workbench.Ta.run-this-agent-in-a-new-git-worktree",
+    "source": "Ta=fM(()=>{if(ln&&Wc(ln)&&ln.glassWorktreeMode===\"fresh\")return null;let jo;if(ln&&Wc(ln)&&tc(ln.id)&&ln.glassWorktreeMode===void 0&&tb(ln.remoteAuthority).type===\"local\"?jo=ln:jo=dl,!jo||!dh.has(jo.id.id))return null;const sb=jo;return{id:\"glass-action-worktree\",name:\"worktree\",description:\"Run this agent in a new git worktree\",tooltip:\"Run this agent in a new git worktree\",type:\"action\",sectionTitle:\"Open\",trayCategory:\"move-to\",leadingIcon:\"fork\",onAction:()=>{Rn(p8s(sb))}}}",
+    "target": "Ta=fM(()=>{if(ln&&Wc(ln)&&ln.glassWorktreeMode===\"fresh\")return null;let jo;if(ln&&Wc(ln)&&tc(ln.id)&&ln.glassWorktreeMode===void 0&&tb(ln.remoteAuthority).type===\"local\"?jo=ln:jo=dl,!jo||!dh.has(jo.id.id))return null;const sb=jo;return{id:\"glass-action-worktree\",name:\"worktree\",description:\"在新的 git 工作树中运行此智能体\",tooltip:\"在新的 git 工作树中运行此智能体\",type:\"action\",sectionTitle:\"打开\",trayCategory:\"move-to\",leadingIcon:\"fork\",onAction:()=>{Rn(p8s(sb))}}}"
+  },
+  {
+    "id": "workbench.items.copy-prompt-copy-request-id.glass",
+    "source": "items:[{id:\"composer.standalone.copyPrompt\",label:\"Copy prompt\",onSelect:()=>{nwy(t.clipboardService,e)}},{id:\"composer.standalone.copyRequestId\",label:\"Copy Request ID\",onSelect:()=>{if(t.requestId===void 0){t.notificationService.notify({message:\"No request ID found\",severity:si.Info});return}t.clipboardService.writeText(t.requestId),t.notificationService.notify({message:\"Request ID copied to clipboard\",severity:si.Info})}}]",
+    "target": "items:[{id:\"composer.standalone.copyPrompt\",label:\"复制提示词\",onSelect:()=>{nwy(t.clipboardService,e)}},{id:\"composer.standalone.copyRequestId\",label:\"复制请求 ID\",onSelect:()=>{if(t.requestId===void 0){t.notificationService.notify({message:\"未找到请求 ID\",severity:si.Info});return}t.clipboardService.writeText(t.requestId),t.notificationService.notify({message:\"请求 ID 已复制到剪贴板\",severity:si.Info})}}]"
+  },
+  {
+    "id": "workbench.a_s.plan-debug-ask-generate-an-implementation-plan-p",
+    "source": "a_s=[{id:\"plan\",label:\"Plan\",icon:\"list-todo\",color:\"yellow\",placeholder:\"Plan changes\",description:\"Generate an implementation plan\"},{id:\"debug\",label:\"Debug\",icon:\"bugbot\",color:\"red\",placeholder:\"Debug issues\",description:\"Pinpoint the root cause of an issue\"},{id:\"chat\",label:\"Ask\",icon:\"chat-bubble-question\",color:\"green\",placeholder:\"Ask questions\",description:\"Answer questions without making edits\"}]",
+    "target": "a_s=[{id:\"plan\",label:\"规划\",icon:\"list-todo\",color:\"yellow\",placeholder:\"规划更改\",description:\"生成实施计划\"},{id:\"debug\",label:\"调试\",icon:\"bugbot\",color:\"red\",placeholder:\"调试问题\",description:\"精确定位问题根因\"},{id:\"chat\",label:\"提问\",icon:\"chat-bubble-question\",color:\"green\",placeholder:\"提出问题\",description:\"不作编辑地回答问题\"}]"
+  },
+  {
+    "id": "workbench.lLb.ask-every-time-allowlist-allowlist-with-sandbox-",
+    "source": "function lLb(e,t){switch(e){case gm.ASK_EVERY_TIME:return\"Ask Every Time\";case gm.YOLO:return\"Allowlist\";case gm.YOLO_WITH_SANDBOX:return\"Allowlist (with Sandbox)\";case gm.SMART_AUTO:return\"Auto-Review\";case gm.SMART_AUTO_WITH_SANDBOX:return\"Auto-Review (with Sandbox)\";case gm.FULL_YOLO:return t?\"Run Everything (Unsandboxed)\":\"Run Everything\";default:return\"Ask Every Time\"}}",
+    "target": "function lLb(e,t){switch(e){case gm.ASK_EVERY_TIME:return\"每次询问\";case gm.YOLO:return\"允许列表\";case gm.YOLO_WITH_SANDBOX:return\"允许列表 (含沙箱)\";case gm.SMART_AUTO:return\"自动审查\";case gm.SMART_AUTO_WITH_SANDBOX:return\"自动审查 (含沙箱)\";case gm.FULL_YOLO:return t?\"运行一切 (无沙箱)\":\"运行一切\";default:return\"每次询问\"}}"
+  },
+  {
+    "id": "workbench.jGy.ask-every-time-allowlist-allowlist-with-sandbox-",
+    "source": "function jGy(t,e){switch(t){case Sf.ASK_EVERY_TIME:return\"Ask Every Time\";case Sf.YOLO:return\"Allowlist\";case Sf.YOLO_WITH_SANDBOX:return\"Allowlist (with Sandbox)\";case Sf.SMART_AUTO:return\"Auto-Review\";case Sf.SMART_AUTO_WITH_SANDBOX:return\"Auto-Review (with Sandbox)\";case Sf.FULL_YOLO:return e?\"Run Everything (Unsandboxed)\":\"Run Everything\";default:return\"Ask Every Time\"}}",
+    "target": "function jGy(t,e){switch(t){case Sf.ASK_EVERY_TIME:return\"每次询问\";case Sf.YOLO:return\"允许列表\";case Sf.YOLO_WITH_SANDBOX:return\"允许列表 (含沙箱)\";case Sf.SMART_AUTO:return\"自动审查\";case Sf.SMART_AUTO_WITH_SANDBOX:return\"自动审查 (含沙箱)\";case Sf.FULL_YOLO:return e?\"运行一切 (无沙箱)\":\"运行一切\";default:return\"每次询问\"}}"
+  },
+  {
+    "id": "workbench.Y.starting-environment-setup-taking-longer-than-ex",
+    "source": "Y=he(()=>{if(a()||h())return WMs;if(f())return\"Starting environment setup\";if(x())return!!e.currentComposer().createdFromBackgroundAgent?.bcId?jMs:lIu;const xe=U();if(xe)return xe;if(M())return uIu;const Ie=MPu(e.currentComposer().subagentInfo?.subagentTypeName);if(Ie)return Ie;if(H()!==void 0)return b9d;if(B())return\"Taking longer than expected\\u2026\";if(T())return kMc}",
+    "target": "Y=he(()=>{if(a()||h())return WMs;if(f())return\"正在启动环境设置\";if(x())return!!e.currentComposer().createdFromBackgroundAgent?.bcId?jMs:lIu;const xe=U();if(xe)return xe;if(M())return uIu;const Ie=MPu(e.currentComposer().subagentInfo?.subagentTypeName);if(Ie)return Ie;if(H()!==void 0)return b9d;if(B())return\"耗时比预期长\\u2026\";if(T())return kMc}"
+  },
+  {
+    "id": "workbench.z.starting-environment-setup-taking-longer-than-ex",
+    "source": "z=Fe(()=>{if(a()||d())return kea;if(g())return\"Starting environment setup\";if(C())return!!t.currentComposer().createdFromBackgroundAgent?.bcId?Sea:Ojp;const ue=N();if(ue)return ue;if(E())return Bjp;const de=aGp(t.currentComposer().subagentInfo?.subagentTypeName);if(de)return de;if(U()!==void 0)return dRa;if(M())return\"Taking longer than expected\\u2026\";if(k())return vCo}",
+    "target": "z=Fe(()=>{if(a()||d())return kea;if(g())return\"正在启动环境设置\";if(C())return!!t.currentComposer().createdFromBackgroundAgent?.bcId?Sea:Ojp;const ue=N();if(ue)return ue;if(E())return Bjp;const de=aGp(t.currentComposer().subagentInfo?.subagentTypeName);if(de)return de;if(U()!==void 0)return dRa;if(M())return\"耗时比预期长\\u2026\";if(k())return vCo}"
+  },
+  {
+    "id": "workbench.o_v.ask-every-time",
+    "source": "function o_v(e,t){switch(e){case jS.ASK_EVERY_TIME:return\"Ask Every Time\";case jS.USE_ALLOWLIST:return t?\"Allowlist (with Sandbox)\":\"Allowlist\";case jS.SMART_AUTO:return t?\"Auto-review (with Sandbox)\":\"Auto-review\";case jS.RUN_EVERYTHING:return t?\"Run Everything (Unsandboxed)\":\"Run Everything\";default:{const n=e;return\"Ask Every Time\"}}}",
+    "target": "function o_v(e,t){switch(e){case jS.ASK_EVERY_TIME:return\"每次询问\";case jS.USE_ALLOWLIST:return t?\"允许列表 (含沙箱)\":\"允许列表\";case jS.SMART_AUTO:return t?\"自动审查 (含沙箱)\":\"自动审查\";case jS.RUN_EVERYTHING:return t?\"运行一切 (无沙箱)\":\"运行一切\";default:{const n=e;return\"每次询问\"}}}"
+  },
+  {
+    "id": "workbench.uPy.ask-every-time",
+    "source": "function uPy(t,e){switch(t){case RS.ASK_EVERY_TIME:return\"Ask Every Time\";case RS.USE_ALLOWLIST:return e?\"Allowlist (with Sandbox)\":\"Allowlist\";case RS.SMART_AUTO:return e?\"Auto-review (with Sandbox)\":\"Auto-review\";case RS.RUN_EVERYTHING:return e?\"Run Everything (Unsandboxed)\":\"Run Everything\";default:{const n=t;return\"Ask Every Time\"}}}",
+    "target": "function uPy(t,e){switch(t){case RS.ASK_EVERY_TIME:return\"每次询问\";case RS.USE_ALLOWLIST:return e?\"允许列表 (含沙箱)\":\"允许列表\";case RS.SMART_AUTO:return e?\"自动审查 (含沙箱)\":\"自动审查\";case RS.RUN_EVERYTHING:return e?\"运行一切 (无沙箱)\":\"运行一切\";default:{const n=t;return\"每次询问\"}}}"
+  },
+  {
+    "id": "workbench.ar.selected-sources",
+    "source": "ar=fi(()=>{switch(w.kind){case\"user\":return e.userDisplayName?.trim()||\"User\";case\"team\":return e.teamDisplayName?.trim()||\"Team\";case\"workspace\":return(e.usageWorkspaceOptions??[]).find(zi=>zi.id===w.id)?.displayName?.trim()||\"Workspace\";case\"workspaces\":return`${w.ids.length} Workspaces`;case\"sources\":return\"Selected Sources\"}}",
+    "target": "ar=fi(()=>{switch(w.kind){case\"user\":return e.userDisplayName?.trim()||\"用户\";case\"team\":return e.teamDisplayName?.trim()||\"团队\";case\"workspace\":return(e.usageWorkspaceOptions??[]).find(zi=>zi.id===w.id)?.displayName?.trim()||\"工作区\";case\"workspaces\":return`${w.ids.length} 个工作区`;case\"sources\":return\"已选来源\"}}"
+  },
+  {
+    "id": "workbench.xi.selected-sources",
+    "source": "xi=Ss(()=>{switch(_.kind){case\"user\":return t.userDisplayName?.trim()||\"User\";case\"team\":return t.teamDisplayName?.trim()||\"Team\";case\"workspace\":return(t.usageWorkspaceOptions??[]).find(vi=>vi.id===_.id)?.displayName?.trim()||\"Workspace\";case\"workspaces\":return`${_.ids.length} Workspaces`;case\"sources\":return\"Selected Sources\"}}",
+    "target": "xi=Ss(()=>{switch(_.kind){case\"user\":return t.userDisplayName?.trim()||\"用户\";case\"team\":return t.teamDisplayName?.trim()||\"团队\";case\"workspace\":return(t.usageWorkspaceOptions??[]).find(vi=>vi.id===_.id)?.displayName?.trim()||\"工作区\";case\"workspaces\":return`${_.ids.length} 个工作区`;case\"sources\":return\"已选来源\"}}"
+  },
+  {
+    "id": "workbench.pId.commit-changes-stash-changes-discard-changes-cre",
+    "source": "pId=[{id:\"commit\",label:\"Commit changes\",description:\"Create a checkpoint commit with your current changes\"},{id:\"stash\",label:\"Stash changes\",description:\"Save your changes to a stash and restore them later\"},{id:\"discard\",label:\"Discard changes\",description:\"Delete your current uncommitted changes before switching\"}]",
+    "target": "pId=[{id:\"commit\",label:\"提交更改\",description:\"为当前更改创建检查点提交\"},{id:\"stash\",label:\"贮藏更改\",description:\"将更改保存到贮藏，以便稍后恢复\"},{id:\"discard\",label:\"丢弃更改\",description:\"切换前删除当前未提交的更改\"}]"
+  },
+  {
+    "id": "workbench.ee.diff-with-main-branch-latest-commit",
+    "source": "ee=he(()=>{const me=T();if(me===\"workingTree\"||me===\"branch\")return\"(Diff with Main Branch)\";if(me===\"singleCommit\")return\"(Latest Commit)\";if(me===\"pendingDiffs\"||me===\"allAgentChanges\"){const ve=I();return ve?`In Chat: ${e.composerDataService.getComposerTitle(ve)}`:\"In Chat\"}return\"(Diff with Main Branch)\"}",
+    "target": "ee=he(()=>{const me=T();if(me===\"workingTree\"||me===\"branch\")return\"(与主分支差异)\";if(me===\"singleCommit\")return\"(最新提交)\";if(me===\"pendingDiffs\"||me===\"allAgentChanges\"){const ve=I();return ve?`在聊天中：${e.composerDataService.getComposerTitle(ve)}`:\"在聊天中\"}return\"(与主分支差异)\"}"
+  },
+  {
+    "id": "workbench.Z.diff-with-main-branch-latest-commit",
+    "source": "Z=Fe(()=>{const se=k();if(se===\"workingTree\"||se===\"branch\")return\"(Diff with Main Branch)\";if(se===\"singleCommit\")return\"(Latest Commit)\";if(se===\"pendingDiffs\"||se===\"allAgentChanges\"){const ae=x();return ae?`In Chat: ${t.composerDataService.getComposerTitle(ae)}`:\"In Chat\"}return\"(Diff with Main Branch)\"}",
+    "target": "Z=Fe(()=>{const se=k();if(se===\"workingTree\"||se===\"branch\")return\"(与主分支差异)\";if(se===\"singleCommit\")return\"(最新提交)\";if(se===\"pendingDiffs\"||se===\"allAgentChanges\"){const ae=x();return ae?`在聊天中：${t.composerDataService.getComposerTitle(ae)}`:\"在聊天中\"}return\"(与主分支差异)\"}"
+  },
+  {
+    "id": "workbench.wr.switching-models-is-unavailable-in-this-conversa",
+    "source": "wr=he(()=>{if(Je())return\"Switching models is unavailable in this conversation. Start a new conversation to use a different model.\";const Xn=Iqc(He(),te());if(Xn!==void 0)return Xn;const Br=fr(),jr=li(),Po=sr();let $a=\"Switch Model\";return Br&&($a+=` (${Br})`),Po&&jr&&($a+=` \\xB7 Cycle ${Po} (${jr})`),$a}",
+    "target": "wr=he(()=>{if(Je())return\"此对话中无法切换模型。请新建对话以使用其他模型。\";const Xn=Iqc(He(),te());if(Xn!==void 0)return Xn;const Br=fr(),jr=li(),Po=sr();let $a=\"切换模型\";return Br&&($a+=` (${Br})`),Po&&jr&&($a+=` \\xB7 轮换 ${Po} (${jr})`),$a}"
+  },
+  {
+    "id": "workbench.hn.switching-models-is-unavailable-in-this-conversa",
+    "source": "hn=Fe(()=>{if(Ee())return\"Switching models is unavailable in this conversation. Start a new conversation to use a different model.\";const Mn=_fs(we(),Y());if(Mn!==void 0)return Mn;const ti=Sn(),ci=sn(),hi=ln();let Rs=\"Switch Model\";return ti&&(Rs+=` (${ti})`),hi&&ci&&(Rs+=` \\xB7 Cycle ${hi} (${ci})`),Rs}",
+    "target": "hn=Fe(()=>{if(Ee())return\"此对话中无法切换模型。请新建对话以使用其他模型。\";const Mn=_fs(we(),Y());if(Mn!==void 0)return Mn;const ti=Sn(),ci=sn(),hi=ln();let Rs=\"切换模型\";return ti&&(Rs+=` (${ti})`),hi&&ci&&(Rs+=` \\xB7 轮换 ${hi} (${ci})`),Rs}"
+  },
+  {
+    "id": "workbench.E5a.admin-dashboard-admin-configured-file-local-ide-",
+    "source": "function E5a(t,e){switch(t){case\"dashboard\":return\"admin dashboard\";case\"adminRemotePermissionsFile\":case\"adminLocalPermissionsFile\":case\"adminPermissionsFile\":return\"admin-configured file\";case\"userPermissionsFile\":return`~/${e??\".cursor\"}/permissions.json`;case\"ide\":return\"local IDE settings\"}}",
+    "target": "function E5a(t,e){switch(t){case\"dashboard\":return\"管理员控制台\";case\"adminRemotePermissionsFile\":case\"adminLocalPermissionsFile\":case\"adminPermissionsFile\":return\"管理员配置的文件\";case\"userPermissionsFile\":return`~/${e??\".cursor\"}/permissions.json`;case\"ide\":return\"本地 IDE 设置\"}}"
+  },
+  {
+    "id": "workbench.o.select-all.glass",
+    "source": "o=[{id:\"selectAll\",label:\"Select All\",trailing:qem(t.keybindingService,SMa.selectAll),onSelect:()=>{const a=t.targetWindow.getSelection();if(a&&t.scrollableContainer){const l=t.targetWindow.document.createRange();l.selectNodeContents(t.scrollableContainer),a.removeAllRanges(),a.addRange(l)}}}]",
+    "target": "o=[{id:\"selectAll\",label:\"全选\",trailing:qem(t.keybindingService,SMa.selectAll),onSelect:()=>{const a=t.targetWindow.getSelection();if(a&&t.scrollableContainer){const l=t.targetWindow.document.createRange();l.selectNodeContents(t.scrollableContainer),a.removeAllRanges(),a.addRange(l)}}}]"
+  },
+  {
+    "id": "workbench.hId.continue-in-cloud-and-leave-changes-on-this-bran",
+    "source": "hId=[{id:\"cloud\",label:\"Continue in cloud and leave changes on this branch undisturbed\"},{id:\"commit\",label:\"Commit current changes to checkpoint\"},{id:\"stash\",label:\"Stash and save your changes so you can restore them later\"},{id:\"discard\",label:\"Discard your current uncommitted changes\"}]",
+    "target": "hId=[{id:\"cloud\",label:\"在云端继续，此分支上的更改保持原样\"},{id:\"commit\",label:\"提交当前更改作为检查点\"},{id:\"stash\",label:\"贮藏并保存更改，以便稍后恢复\"},{id:\"discard\",label:\"丢弃当前未提交的更改\"}]"
+  },
+  {
+    "id": "settings.y4b.div-class-mcp-server-item-container-div-class-cu",
+    "source": "y4b=Ue(\"<div class=mcp-server-item-container><div class=cursor-settings-cell-divider></div><div class=mcp-server-item><div class=mcp-server-item-main-content><div class=mcp-server-item-main-content-name>New MCP Server</div><div class=mcp-server-item-subtext>Add a Custom MCP Server\")",
+    "target": "y4b=Ue(\"<div class=mcp-server-item-container><div class=cursor-settings-cell-divider></div><div class=mcp-server-item><div class=mcp-server-item-main-content><div class=mcp-server-item-main-content-name>新建 MCP 服务器</div><div class=mcp-server-item-subtext>添加自定义 MCP 服务器\")"
+  },
+  {
+    "id": "settings.Kxm.div-class-mcp-server-item-container-div-class-cu",
+    "source": "Kxm=rt(\"<div class=mcp-server-item-container><div class=cursor-settings-cell-divider></div><div class=mcp-server-item><div class=mcp-server-item-main-content><div class=mcp-server-item-main-content-name>New MCP Server</div><div class=mcp-server-item-subtext>Add a Custom MCP Server\")",
+    "target": "Kxm=rt(\"<div class=mcp-server-item-container><div class=cursor-settings-cell-divider></div><div class=mcp-server-item><div class=mcp-server-item-main-content><div class=mcp-server-item-main-content-name>新建 MCP 服务器</div><div class=mcp-server-item-subtext>添加自定义 MCP 服务器\")"
+  },
+  {
+    "id": "workbench.H0d.default-green-cyan-blue-purple-magenta-orange-ye",
+    "source": "H0d=[{id:\"default\",label:\"Default\"},{id:\"green\",label:\"Green\"},{id:\"cyan\",label:\"Cyan\"},{id:\"blue\",label:\"Blue\"},{id:\"purple\",label:\"Purple\"},{id:\"magenta\",label:\"Magenta\"},{id:\"orange\",label:\"Orange\"},{id:\"yellow\",label:\"Yellow\"},{id:\"red\",label:\"Red\"},{id:\"brand\",label:\"Brand\"}]",
+    "target": "H0d=[{id:\"default\",label:\"默认\"},{id:\"green\",label:\"绿色\"},{id:\"cyan\",label:\"青色\"},{id:\"blue\",label:\"蓝色\"},{id:\"purple\",label:\"紫色\"},{id:\"magenta\",label:\"品红色\"},{id:\"orange\",label:\"橙色\"},{id:\"yellow\",label:\"黄色\"},{id:\"red\",label:\"红色\"},{id:\"brand\",label:\"品牌\"}]"
+  },
+  {
+    "id": "workbench.jAo.my-task-task-definition-file",
+    "source": "var jAo={id:Mxn,description:\"Task definition file\",type:\"object\",allowTrailingCommas:!0,allowComments:!0,default:{version:\"2.0.0\",tasks:[{label:\"My Task\",command:\"echo hello\",type:\"shell\",args:[],problemMatcher:[\"$tsc\"],presentation:{reveal:\"always\"},group:\"build\"}]}}",
+    "target": "var jAo={id:Mxn,description:\"任务定义文件\",type:\"object\",allowTrailingCommas:!0,allowComments:!0,default:{version:\"2.0.0\",tasks:[{label:\"我的任务\",command:\"echo hello\",type:\"shell\",args:[],problemMatcher:[\"$tsc\"],presentation:{reveal:\"always\"},group:\"build\"}]}}"
+  },
+  {
+    "id": "workbench.m.stop",
+    "source": "m=hyi(()=>{const v=[];return t.canStopFsdAgent&&v.push({label:\"Stop\",\"aria-label\":`Stop ${c}`,onClick:()=>{t.stopFsdAgent()},variant:\"text\"}),a!==void 0&&v.push({icon:\"link-external\",\"aria-label\":\"Open FSD agent in browser\",tooltip:\"Open in browser\",onClick:p}),v}",
+    "target": "m=hyi(()=>{const v=[];return t.canStopFsdAgent&&v.push({label:\"停止\",\"aria-label\":`停止 ${c}`,onClick:()=>{t.stopFsdAgent()},variant:\"text\"}),a!==void 0&&v.push({icon:\"link-external\",\"aria-label\":\"在浏览器中打开 FSD 智能体\",tooltip:\"在浏览器中打开\",onClick:p}),v}"
+  },
+  {
+    "id": "workbench.u.apply-checkout-branch",
+    "source": "u=[{id:\"apply-all\",label:\"Apply\",tooltip:\"Apply changes locally\",class:void 0,enabled:!t.isLoading,run:()=>s()},{id:\"checkout-branch\",label:\"Checkout Branch\",tooltip:\"Checkout branch locally\",class:void 0,enabled:!t.isLoading,run:()=>t.onCheckoutLocally?.(!1)}]",
+    "target": "u=[{id:\"apply-all\",label:\"应用\",tooltip:\"在本地应用更改\",class:void 0,enabled:!t.isLoading,run:()=>s()},{id:\"checkout-branch\",label:\"检出分支\",tooltip:\"在本地检出分支\",class:void 0,enabled:!t.isLoading,run:()=>t.onCheckoutLocally?.(!1)}]"
+  },
+  {
+    "id": "settings.sjb.div-class-error-content-subtitle-cursor-pro-come",
+    "source": "sjb=Ue(\"<div class=error__content_subtitle>Cursor Pro comes with other benefits too, such as unlimited Cursor Tab requests and access to all the latest models (see <a href=https://cursor.com/pricing target=_blank>cursor.com/pricing</a> for more details).\")",
+    "target": "sjb=Ue(\"<div class=error__content_subtitle>Cursor Pro 还附带其他权益，例如不限量的 Cursor Tab 请求和所有最新模型的使用权限 (详见 <a href=https://cursor.com/pricing target=_blank>cursor.com/pricing</a>)。\")"
+  },
+  {
+    "id": "settings.BIm.div-class-error-content-subtitle-cursor-pro-come",
+    "source": "BIm=rt(\"<div class=error__content_subtitle>Cursor Pro comes with other benefits too, such as unlimited Cursor Tab requests and access to all the latest models (see <a href=https://cursor.com/pricing target=_blank>cursor.com/pricing</a> for more details).\")",
+    "target": "BIm=rt(\"<div class=error__content_subtitle>Cursor Pro 还附带其他权益，例如不限量的 Cursor Tab 请求和所有最新模型的使用权限 (详见 <a href=https://cursor.com/pricing target=_blank>cursor.com/pricing</a>)。\")"
+  },
+  {
+    "id": "workbench.NLo.stash-changes-commit-changes-temporarily-save-un",
+    "source": "NLo=[{id:\"stash\",label:\"Stash changes\",description:\"Temporarily save uncommitted work, then check out the cloud agent branch.\"},{id:\"commit\",label:\"Commit changes\",description:\"Create a checkpoint commit of your changes, then check out the branch.\"}]",
+    "target": "NLo=[{id:\"stash\",label:\"贮藏更改\",description:\"临时保存未提交的工作，然后检出云端智能体分支。\"},{id:\"commit\",label:\"提交更改\",description:\"为你的更改创建检查点提交，然后检出该分支。\"}]"
+  },
+  {
+    "id": "workbench.items.download-video.glass",
+    "source": "items:[{id:\"downloadVideo\",label:\"Download Video\",onSelect:async()=>{const a=t.artifactVideoDownloadContext,l=a?.artifactAgentId;if(n.artifactPath!==void 0&&a!==void 0&&l!==void 0&&eg(l)){await Wem(l,n.artifactPath,a);return}$em(n.src,\"video\")}}]",
+    "target": "items:[{id:\"downloadVideo\",label:\"下载视频\",onSelect:async()=>{const a=t.artifactVideoDownloadContext,l=a?.artifactAgentId;if(n.artifactPath!==void 0&&a!==void 0&&l!==void 0&&eg(l)){await Wem(l,n.artifactPath,a);return}$em(n.src,\"video\")}}]"
+  },
+  {
+    "id": "workbench.s.custom",
+    "source": "s=Ent(()=>{if(!t?.error)return;const l=t.error.details?.additionalInfo?.spendLimits,c=lLh(l);if(!c)return;const u=c.map(d=>({value:d.startsWith(\"$\")?d:`$${d}`,label:d.startsWith(\"$\")?d:`$${d}`}));return u.push({value:\"custom\",label:\"Custom\"}),u}",
+    "target": "s=Ent(()=>{if(!t?.error)return;const l=t.error.details?.additionalInfo?.spendLimits,c=lLh(l);if(!c)return;const u=c.map(d=>({value:d.startsWith(\"$\")?d:`$${d}`,label:d.startsWith(\"$\")?d:`$${d}`}));return u.push({value:\"custom\",label:\"自定义\"}),u}"
+  },
+  {
+    "id": "workbench.XYs.ask-every-time-run-autonomously-suggest-tasks-to",
+    "source": "XYs=[{id:\"suggest\",label:\"Ask Every Time\",description:\"Suggest tasks to be accepted\",iconName:\"lightbulb\",mode:qw.SUGGEST},{id:\"autonomous\",label:\"Run Autonomously\",description:\"Drive the PR end-to-end\",iconName:\"play-super-fast\",mode:qw.APPLY}]",
+    "target": "XYs=[{id:\"suggest\",label:\"每次询问\",description:\"建议任务供你确认\",iconName:\"lightbulb\",mode:qw.SUGGEST},{id:\"autonomous\",label:\"自主运行\",description:\"端到端推进 PR\",iconName:\"play-super-fast\",mode:qw.APPLY}]"
+  },
+  {
+    "id": "workbench.s.all-tasks-working-blocked-everything-on-the-boar",
+    "source": "s=[{id:\"all\",label:\"All Tasks\",description:\"Everything on the board\"},{id:\"working\",label:\"Working\",description:\"Ready with dependencies satisfied\"},{id:\"blocked\",label:\"Blocked\",description:\"Waiting on a dependency or cycle\"}]",
+    "target": "s=[{id:\"all\",label:\"全部任务\",description:\"看板上的所有内容\"},{id:\"working\",label:\"进行中\",description:\"依赖已满足，随时可以开始\"},{id:\"blocked\",label:\"已阻塞\",description:\"正在等待依赖或存在循环依赖\"}]"
+  },
+  {
+    "id": "workbench.L.all-user",
+    "source": "L=Fe(()=>{if(!e){const N=[{id:NN,label:\"All\"},{id:Qse,label:\"User\"}];return a()&&N.push({id:r3e,label:a()}),[...N,{id:IAe,label:d()}]}return[{id:Qse,label:\"User\"},...m().map(N=>({id:N.id,label:N.label})),{id:IAe,label:d()}]}",
+    "target": "L=Fe(()=>{if(!e){const N=[{id:NN,label:\"全部\"},{id:Qse,label:\"用户\"}];return a()&&N.push({id:r3e,label:a()}),[...N,{id:IAe,label:d()}]}return[{id:Qse,label:\"用户\"},...m().map(N=>({id:N.id,label:N.label})),{id:IAe,label:d()}]}"
+  },
+  {
+    "id": "workbench.items.cut-copy-paste.glass",
+    "source": "items:[{id:\"cut\",label:\"Cut\",onSelect:()=>{t.commands.focus(),Y0().execCommand(\"cut\")}},{id:\"copy\",label:\"Copy\",onSelect:()=>{t.commands.focus(),Y0().execCommand(\"copy\")}},{id:\"paste\",label:\"Paste\",onSelect:()=>{lLy(t,e)}}]",
+    "target": "items:[{id:\"cut\",label:\"剪切\",onSelect:()=>{t.commands.focus(),Y0().execCommand(\"cut\")}},{id:\"copy\",label:\"复制\",onSelect:()=>{t.commands.focus(),Y0().execCommand(\"copy\")}},{id:\"paste\",label:\"粘贴\",onSelect:()=>{lLy(t,e)}}]"
+  },
+  {
+    "id": "workbench.i4b.div-class-mcp-security-warning-role-alert-instal",
+    "source": "i4b=Ue(\"<div class=mcp-security-warning role=alert>Installing an MCP server will execute commands with the same privileges as your user. Only proceed if you fully trust the server source and understand the implications.\")",
+    "target": "i4b=Ue(\"<div class=mcp-security-warning role=alert>安装 MCP 服务器将以与你用户相同的权限执行命令。仅在完全信任该服务器来源并了解相关影响时才继续。\")"
+  },
+  {
+    "id": "workbench.Mxm.div-class-mcp-security-warning-role-alert-instal",
+    "source": "Mxm=rt(\"<div class=mcp-security-warning role=alert>Installing an MCP server will execute commands with the same privileges as your user. Only proceed if you fully trust the server source and understand the implications.\")",
+    "target": "Mxm=rt(\"<div class=mcp-security-warning role=alert>安装 MCP 服务器将以与你用户相同的权限执行命令。仅在完全信任该服务器来源并了解相关影响时才继续。\")"
+  },
+  {
+    "id": "workbench.items.open-agent-copy-link.glass",
+    "source": "items:[{id:\"openAgent\",label:\"Open Agent\",onSelect:()=>{e(),t.openerService.open(ddi(i),{fromUserGesture:!0})}},{id:\"copyLink\",label:\"Copy Link\",onSelect:()=>{e(),t.clipboardService.writeText(p$h(i,t.websiteUrl))}}]",
+    "target": "items:[{id:\"openAgent\",label:\"打开智能体\",onSelect:()=>{e(),t.openerService.open(ddi(i),{fromUserGesture:!0})}},{id:\"copyLink\",label:\"复制链接\",onSelect:()=>{e(),t.clipboardService.writeText(p$h(i,t.websiteUrl))}}]"
+  },
+  {
+    "id": "workbench.w2v.ask-every-time-allowlist-auto-run-everything",
+    "source": "function w2v(e){switch(e){case jft.ASK_EVERY_TIME:return\"Ask Every Time\";case jft.USE_ALLOWLIST:return\"Allowlist\";case jft.SMART_AUTO:return\"Auto\";case jft.RUN_EVERYTHING:return\"Run Everything\";default:return e}}",
+    "target": "function w2v(e){switch(e){case jft.ASK_EVERY_TIME:return\"每次询问\";case jft.USE_ALLOWLIST:return\"允许列表\";case jft.SMART_AUTO:return\"自动\";case jft.RUN_EVERYTHING:return\"运行一切\";default:return e}}"
+  },
+  {
+    "id": "workbench.j2S.ask-every-time-allowlist-auto-run-everything",
+    "source": "function j2S(t){switch(t){case XWt.ASK_EVERY_TIME:return\"Ask Every Time\";case XWt.USE_ALLOWLIST:return\"Allowlist\";case XWt.SMART_AUTO:return\"Auto\";case XWt.RUN_EVERYTHING:return\"Run Everything\";default:return t}}",
+    "target": "function j2S(t){switch(t){case XWt.ASK_EVERY_TIME:return\"每次询问\";case XWt.USE_ALLOWLIST:return\"允许列表\";case XWt.SMART_AUTO:return\"自动\";case XWt.RUN_EVERYTHING:return\"运行一切\";default:return t}}"
+  },
+  {
+    "id": "workbench.B.undo-all",
+    "source": "B=he(()=>{if(!M())return\"Undo All\";const ze=L();if(ze===1){const tt=P();return vOt[tt]?.reject??\"Undo\"}if(ze===0&&e.pendingDecisionGroup.length===1){const tt=P();return vOt[tt]?.reject??\"Undo\"}return\"Undo All\"}",
+    "target": "B=he(()=>{if(!M())return\"全部撤销\";const ze=L();if(ze===1){const tt=P();return vOt[tt]?.reject??\"撤销\"}if(ze===0&&e.pendingDecisionGroup.length===1){const tt=P();return vOt[tt]?.reject??\"撤销\"}return\"全部撤销\"}"
+  },
+  {
+    "id": "workbench.N.keep-all",
+    "source": "N=he(()=>{if(!M())return\"Keep All\";const ze=L();if(ze===1){const tt=P();return vOt[tt]?.accept??\"Keep\"}if(ze===0&&e.pendingDecisionGroup.length===1){const tt=P();return vOt[tt]?.accept??\"Keep\"}return\"Keep All\"}",
+    "target": "N=he(()=>{if(!M())return\"全部保留\";const ze=L();if(ze===1){const tt=P();return vOt[tt]?.accept??\"保留\"}if(ze===0&&e.pendingDecisionGroup.length===1){const tt=P();return vOt[tt]?.accept??\"保留\"}return\"全部保留\"}"
+  },
+  {
+    "id": "workbench.M.undo-all",
+    "source": "M=Fe(()=>{if(!E())return\"Undo All\";const xe=R();if(xe===1){const Ie=I();return vpn[Ie]?.reject??\"Undo\"}if(xe===0&&t.pendingDecisionGroup.length===1){const Ie=I();return vpn[Ie]?.reject??\"Undo\"}return\"Undo All\"}",
+    "target": "M=Fe(()=>{if(!E())return\"全部撤销\";const xe=R();if(xe===1){const Ie=I();return vpn[Ie]?.reject??\"撤销\"}if(xe===0&&t.pendingDecisionGroup.length===1){const Ie=I();return vpn[Ie]?.reject??\"撤销\"}return\"全部撤销\"}"
+  },
+  {
+    "id": "workbench.P.keep-all",
+    "source": "P=Fe(()=>{if(!E())return\"Keep All\";const xe=R();if(xe===1){const Ie=I();return vpn[Ie]?.accept??\"Keep\"}if(xe===0&&t.pendingDecisionGroup.length===1){const Ie=I();return vpn[Ie]?.accept??\"Keep\"}return\"Keep All\"}",
+    "target": "P=Fe(()=>{if(!E())return\"全部保留\";const xe=R();if(xe===1){const Ie=I();return vpn[Ie]?.accept??\"保留\"}if(xe===0&&t.pendingDecisionGroup.length===1){const Ie=I();return vpn[Ie]?.accept??\"保留\"}return\"全部保留\"}"
+  },
+  {
+    "id": "workbench.afn.plugins-mcps-skills-subagents-rules-commands-hoo",
+    "source": "afn=[{id:\"plugins\",label:\"Plugins\"},{id:\"mcps\",label:\"MCPs\"},{id:\"skills\",label:\"Skills\"},{id:\"agents\",label:\"Subagents\"},{id:\"rules\",label:\"Rules\"},{id:\"commands\",label:\"Commands\"},{id:\"hooks\",label:\"Hooks\"}]",
+    "target": "afn=[{id:\"plugins\",label:\"插件\"},{id:\"mcps\",label:\"MCP\"},{id:\"skills\",label:\"技能\"},{id:\"agents\",label:\"子智能体\"},{id:\"rules\",label:\"规则\"},{id:\"commands\",label:\"命令\"},{id:\"hooks\",label:\"钩子\"}]"
+  },
+  {
+    "id": "workbench.items.copy-image-download-image.glass",
+    "source": "items:[{id:\"copyImage\",label:\"Copy Image\",onSelect:()=>{eBs(n.src).then(a=>t.clipboardService.writeImage(a)).catch(lr)}},{id:\"downloadImage\",label:\"Download Image\",onSelect:()=>{STy(n.src,\"image\").catch(lr)}}]",
+    "target": "items:[{id:\"copyImage\",label:\"复制图像\",onSelect:()=>{eBs(n.src).then(a=>t.clipboardService.writeImage(a)).catch(lr)}},{id:\"downloadImage\",label:\"下载图像\",onSelect:()=>{STy(n.src,\"image\").catch(lr)}}]"
+  },
+  {
+    "id": "workbench.T5a.last-used-cloud-local-new-worktree-team-pool",
+    "source": "T5a=[{id:\"last-used\",label:\"Last Used\"},{id:\"cloud\",label:\"Cloud\"},{id:\"local\",label:\"Local\"},{id:\"new-worktree\",label:\"New Worktree\"},{id:\"shared-pool\",label:\"Team Pool\"},{id:\"remote-control\",label:\"远程控制\"}]",
+    "target": "T5a=[{id:\"last-used\",label:\"最近使用\"},{id:\"cloud\",label:\"云端\"},{id:\"local\",label:\"本地\"},{id:\"new-worktree\",label:\"新建工作树\"},{id:\"shared-pool\",label:\"团队池\"},{id:\"remote-control\",label:\"远程控制\"}]"
+  },
+  {
+    "id": "workbench.zbs.board-list-grid-graph",
+    "source": "zbs=[{id:\"kanban\",label:\"Board\",iconName:\"board-kanban\"},{id:\"list\",label:\"List\",iconName:\"list-bullets\"},{id:\"grid\",label:\"Grid\",iconName:\"grid\"},{id:\"graph\",label:\"Graph\",iconName:\"graph\"}]",
+    "target": "zbs=[{id:\"kanban\",label:\"看板\",iconName:\"board-kanban\"},{id:\"list\",label:\"列表\",iconName:\"list-bullets\"},{id:\"grid\",label:\"网格\",iconName:\"grid\"},{id:\"graph\",label:\"关系图\",iconName:\"graph\"}]"
+  },
+  {
+    "id": "workbench.sHd.files-folders-past-chats",
+    "source": "sHd=[{id:\"files-and-folders\",label:\"Files & Folders\",mode:\"files_and_folders\",iconName:\"folder\"},{id:\"past-chats\",label:\"Past Chats\",mode:\"past_chats\",iconName:\"chat-bubbles\"}]",
+    "target": "sHd=[{id:\"files-and-folders\",label:\"文件和文件夹\",mode:\"files_and_folders\",iconName:\"folder\"},{id:\"past-chats\",label:\"历史聊天\",mode:\"past_chats\",iconName:\"chat-bubbles\"}]"
+  },
+  {
+    "id": "workbench._.connecting",
+    "source": "_=he(()=>{switch(i().kind){case\"idle\":return;case\"opening\":return\"Connecting...\";case\"waiting\":return c()?.phase===\"checking\"?\"Exchanging token...\":\"Waiting for callback...\"}}",
+    "target": "_=he(()=>{switch(i().kind){case\"idle\":return;case\"opening\":return\"连接中...\";case\"waiting\":return c()?.phase===\"checking\"?\"正在交换令牌...\":\"等待回调...\"}}"
+  },
+  {
+    "id": "workbench.b.connecting",
+    "source": "b=Fe(()=>{switch(i().kind){case\"idle\":return;case\"opening\":return\"Connecting...\";case\"waiting\":return l()?.phase===\"checking\"?\"Exchanging token...\":\"Waiting for callback...\"}}",
+    "target": "b=Fe(()=>{switch(i().kind){case\"idle\":return;case\"opening\":return\"连接中...\";case\"waiting\":return l()?.phase===\"checking\"?\"正在交换令牌...\":\"等待回调...\"}}"
+  },
+  {
+    "id": "workbench.a8k.multiple-local-agents-detected-in-this-repo-mult",
+    "source": "function a8k(t){switch(t){case\"parallel_agents\":return\"Multiple local agents detected in this repo\";case\"multi_worktree\":return\"Multiple worktrees detected in this repo\"}}",
+    "target": "function a8k(t){switch(t){case\"parallel_agents\":return\"在此仓库中检测到多个本地智能体\";case\"multi_worktree\":return\"在此仓库中检测到多个工作树\"}}"
+  },
+  {
+    "id": "workbench.ce.all-user",
+    "source": "ce=FJe(()=>{const ge=[{id:\"all\",label:\"All\"},{id:\"user\",label:\"User\"}];return l!=null&&l!==\"\"&&ge.push({id:\"project\",label:l}),V&&a&&ge.push({id:\"team\",label:a}),ge}",
+    "target": "ce=FJe(()=>{const ge=[{id:\"all\",label:\"全部\"},{id:\"user\",label:\"用户\"}];return l!=null&&l!==\"\"&&ge.push({id:\"project\",label:l}),V&&a&&ge.push({id:\"team\",label:a}),ge}"
+  },
+  {
+    "id": "workbench.t.open-closed-draft-merged",
+    "source": "t=he(()=>{switch(e.status){case\"open\":return\"Open\";case\"closed\":return\"Closed\";case\"draft\":return\"Draft\";case\"merged\":return\"Merged\";default:return e.status,\"\"}}",
+    "target": "t=he(()=>{switch(e.status){case\"open\":return\"打开\";case\"closed\":return\"已关闭\";case\"draft\":return\"草稿\";case\"merged\":return\"已合并\";default:return e.status,\"\"}}"
+  },
+  {
+    "id": "workbench.e.open-closed-draft-merged",
+    "source": "e=Fe(()=>{switch(t.status){case\"open\":return\"Open\";case\"closed\":return\"Closed\";case\"draft\":return\"Draft\";case\"merged\":return\"Merged\";default:return t.status,\"\"}}",
+    "target": "e=Fe(()=>{switch(t.status){case\"open\":return\"打开\";case\"closed\":return\"已关闭\";case\"draft\":return\"草稿\";case\"merged\":return\"已合并\";default:return t.status,\"\"}}"
+  },
+  {
+    "id": "workbench.cCh.plugins-skills-mcps-subagents-commands",
+    "source": "cCh=[{id:\"plugins\",label:\"Plugins\"},{id:\"skills\",label:\"Skills\"},{id:\"tools\",label:\"MCPs\"},{id:\"subagents\",label:\"Subagents\"},{id:\"commands\",label:\"Commands\"}]",
+    "target": "cCh=[{id:\"plugins\",label:\"插件\"},{id:\"skills\",label:\"技能\"},{id:\"tools\",label:\"MCP\"},{id:\"subagents\",label:\"子智能体\"},{id:\"commands\",label:\"命令\"}]"
+  },
+  {
+    "id": "workbench.fgk.hourly-daily-weekdays-weekly-custom",
+    "source": "fgk=[{id:\"hourly\",label:\"Hourly\"},{id:\"daily\",label:\"Daily\"},{id:\"weekdays\",label:\"Weekdays\"},{id:\"weekly\",label:\"Weekly\"},{id:\"custom\",label:\"Custom\"}]",
+    "target": "fgk=[{id:\"hourly\",label:\"每小时\"},{id:\"daily\",label:\"每天\"},{id:\"weekdays\",label:\"工作日\"},{id:\"weekly\",label:\"每周\"},{id:\"custom\",label:\"自定义\"}]"
+  },
+  {
+    "id": "workbench.tIg.all-out-in-fan-out-leaks",
+    "source": "tIg=[{id:\"connections\",label:\"All\"},{id:\"observers\",label:\"Out\"},{id:\"sources\",label:\"In\"},{id:\"fanout\",label:\"Fan-out\"},{id:\"leaks\",label:\"Leaks\"}]",
+    "target": "tIg=[{id:\"connections\",label:\"全部\"},{id:\"observers\",label:\"输出\"},{id:\"sources\",label:\"输入\"},{id:\"fanout\",label:\"扇出\"},{id:\"leaks\",label:\"泄漏\"}]"
+  },
+  {
+    "id": "workbench.tUd.gallery-icons-list",
+    "source": "tUd=[{id:\"gallery\",label:\"Gallery\",iconName:\"grid\"},{id:\"icon\",label:\"Icons\",iconName:\"folder\"},{id:\"list\",label:\"List\",iconName:\"list-bullets\"}]",
+    "target": "tUd=[{id:\"gallery\",label:\"画廊\",iconName:\"grid\"},{id:\"icon\",label:\"图标\",iconName:\"folder\"},{id:\"list\",label:\"列表\",iconName:\"list-bullets\"}]"
+  },
+  {
+    "id": "workbench.message.switching-models-can-degrade-quality-and-is-curr",
+    "source": "message:\"Switching models can degrade quality and is currently limited in this conversation. Would you like to start a new chat?\"",
+    "target": "message:\"切换模型可能降低质量，当前对话中已受限。是否新建聊天？\""
+  },
+  {
+    "id": "workbench.description.maximum-number-of-cursor-managed-worktrees-to-re",
+    "source": "description:\"Maximum number of Cursor-managed worktrees to retain across all workspaces. Older worktrees are removed first.\"",
+    "target": "description:\"跨所有工作区保留的 Cursor 管理工作树的最大数量。较旧的工作树会先被删除。\""
+  },
+  {
+    "id": "workbench.r4b.div-span-class-mcp-detail-label-type-span-input-",
+    "source": "r4b=Ue(\"<div><span class=mcp-detail-label>Type:</span><input type=text class=mcp-editable-input value=stdio disabled>\")",
+    "target": "r4b=Ue(\"<div><span class=mcp-detail-label>类型：</span><input type=text class=mcp-editable-input value=stdio disabled>\")"
+  },
+  {
+    "id": "workbench.Nxm.div-span-class-mcp-detail-label-type-span-input-",
+    "source": "Nxm=rt(\"<div><span class=mcp-detail-label>Type:</span><input type=text class=mcp-editable-input value=stdio disabled>\")",
+    "target": "Nxm=rt(\"<div><span class=mcp-detail-label>类型：</span><input type=text class=mcp-editable-input value=stdio disabled>\")"
+  },
+  {
+    "id": "workbench.description.cursor-periodically-removes-old-worktrees-to-fre",
+    "source": "description:\"Cursor periodically removes old worktrees to free disk space. Tune how aggressively cleanup runs.\"",
+    "target": "description:\"Cursor 会定期删除旧工作树以释放磁盘空间。可调整清理的激进程度。\""
+  },
+  {
+    "id": "workbench.description.maximum-total-size-in-gb-across-all-cursor-manag",
+    "source": "description:\"Maximum total size in GB across all Cursor-managed worktrees. Set to 0 to disable the size limit.\"",
+    "target": "description:\"所有 Cursor 管理工作树的最大总大小，单位 GB。设为 0 可禁用大小限制。\""
+  },
+  {
+    "id": "workbench.WEg.board-list",
+    "source": "WEg=[{id:\"kanban\",label:\"Board\",iconName:\"board-kanban\"},{id:\"list\",label:\"List\",iconName:\"list-bullets\"}]",
+    "target": "WEg=[{id:\"kanban\",label:\"看板\",iconName:\"board-kanban\"},{id:\"list\",label:\"列表\",iconName:\"list-bullets\"}]"
+  },
+  {
+    "id": "workbench.U.always-ask-always-run",
+    "source": "U=Q=>{switch(Q){case\"alwaysAsk\":return\"Always ask\";case\"alwaysRun\":return\"Always run\";default:return Q}}",
+    "target": "U=Q=>{switch(Q){case\"alwaysAsk\":return\"总是询问\";case\"alwaysRun\":return\"总是运行\";default:return Q}}"
+  },
+  {
+    "id": "workbench.N.always-ask-always-run",
+    "source": "N=G=>{switch(G){case\"alwaysAsk\":return\"Always ask\";case\"alwaysRun\":return\"Always run\";default:return G}}",
+    "target": "N=G=>{switch(G){case\"alwaysAsk\":return\"总是询问\";case\"alwaysRun\":return\"总是运行\";default:return G}}"
+  },
+  {
+    "id": "workbench.pTg.context-subscriptions-runs",
+    "source": "pTg=[{id:\"context\",label:\"Context\"},{id:\"subscriptions\",label:\"Subscriptions\"},{id:\"runs\",label:\"Runs\"}]",
+    "target": "pTg=[{id:\"context\",label:\"上下文\"},{id:\"subscriptions\",label:\"订阅\"},{id:\"runs\",label:\"运行\"}]"
+  },
+  {
+    "id": "workbench.p.everything",
+    "source": "p=[{id:\"\",label:\"Everything\"},...Object.keys(n6).filter(N=>isNaN(Number(N))).map(N=>({id:N,label:N}))]",
+    "target": "p=[{id:\"\",label:\"全部\"},...Object.keys(n6).filter(N=>isNaN(Number(N))).map(N=>({id:N,label:N}))]"
+  },
+  {
+    "id": "workbench.items.copy",
+    "source": "items:[{id:\"copySelection\",label:\"Copy\",onSelect:()=>{t.targetWindow.document.execCommand(\"copy\")}}]",
+    "target": "items:[{id:\"copySelection\",label:\"复制\",onSelect:()=>{t.targetWindow.document.execCommand(\"copy\")}}]"
+  },
+  {
+    "id": "workbench.iBo.tasks-context-customize",
+    "source": "iBo=[{id:\"tasks\",label:\"Tasks\"},{id:\"context\",label:\"Context\"},{id:\"customize\",label:\"Customize\"}]",
+    "target": "iBo=[{id:\"tasks\",label:\"任务\"},{id:\"context\",label:\"上下文\"},{id:\"customize\",label:\"自定义\"}]"
+  },
+  {
+    "id": "workbench.items.select-all",
+    "source": "items:[{id:\"selectAll\",label:\"Select All\",onSelect:()=>{t.chain().focus().selectAll().run()}}]",
+    "target": "items:[{id:\"selectAll\",label:\"全选\",onSelect:()=>{t.chain().focus().selectAll().run()}}]"
+  },
+  {
+    "id": "workbench.X7u.host-connect-folder",
+    "source": "X7u=[{id:\"host\",label:\"Host\"},{id:\"connecting\",label:\"Connect\"},{id:\"folder\",label:\"Folder\"}]",
+    "target": "X7u=[{id:\"host\",label:\"主机\"},{id:\"connecting\",label:\"连接\"},{id:\"folder\",label:\"文件夹\"}]"
+  },
+  {
+    "id": "settings.ojb.div-class-cursor-settings-error-message-invalid-",
+    "source": "ojb=Ue(\"<div class=cursor-settings-error-message>Invalid API Key. Please try again.\")",
+    "target": "ojb=Ue(\"<div class=cursor-settings-error-message>无效的 API 密钥，请重试。\")"
+  },
+  {
+    "id": "settings.UIm.div-class-cursor-settings-error-message-invalid-",
+    "source": "UIm=rt(\"<div class=cursor-settings-error-message>Invalid API Key. Please try again.\")",
+    "target": "UIm=rt(\"<div class=cursor-settings-error-message>无效的 API 密钥，请重试。\")"
+  },
+  {
+    "id": "workbench.items.copy-request-id",
+    "source": "items:[{id:\"copy-request-id\",label:\"Copy request ID\",icon:\"copy\",onSelect:()=>{}}]",
+    "target": "items:[{id:\"copy-request-id\",label:\"复制请求 ID\",icon:\"copy\",onSelect:()=>{}}]"
+  },
+  {
+    "id": "workbench.items.symbol-tree-chunk-list",
+    "source": "items:[{id:\"symbolTree\",label:\"Symbol Tree\"},{id:\"chunkList\",label:\"Chunk List\"}]",
+    "target": "items:[{id:\"symbolTree\",label:\"符号树\"},{id:\"chunkList\",label:\"分块列表\"}]"
+  },
+  {
+    "id": "workbench.wXm.div-span-size-kb-span-span-keys-span-span-storag",
+    "source": "wXm=rt(\"<div><span>Size: <!> KB</span><span>Keys: </span><span>Storage Scope: \")",
+    "target": "wXm=rt(\"<div><span>大小：<!> KB</span><span>键数：</span><span>存储范围：\")"
+  },
+  {
+    "id": "settings.MRb.span-class-cursor-settings-sidebar-cell-label-up",
+    "source": "MRb=Ue(\"<span class=cursor-settings-sidebar-cell-label>Upgrade to Pro\")",
+    "target": "MRb=Ue(\"<span class=cursor-settings-sidebar-cell-label>升级到 Pro\")"
+  },
+  {
+    "id": "settings.Cik.span-class-cursor-settings-sidebar-cell-label-up",
+    "source": "Cik=rt(\"<span class=cursor-settings-sidebar-cell-label>Upgrade to Pro\")",
+    "target": "Cik=rt(\"<span class=cursor-settings-sidebar-cell-label>升级到 Pro\")"
+  },
+  {
+    "id": "workbench.wja.connect-folder",
+    "source": "wja=[{id:\"connecting\",label:\"Connect\"},{id:\"folder\",label:\"Folder\"}]",
+    "target": "wja=[{id:\"connecting\",label:\"连接\"},{id:\"folder\",label:\"文件夹\"}]"
+  },
+  {
+    "id": "settings.GGi.button-class-show-all-rules-button-show-all-more",
+    "source": "GGi=Ue(\"<button class=show-all-rules-button>Show all (<!> more)\")",
+    "target": "GGi=Ue(\"<button class=show-all-rules-button>显示全部 (还有 <!> 个)\")"
+  },
+  {
+    "id": "settings.wgi.button-class-show-all-rules-button-show-all-more",
+    "source": "wgi=rt(\"<button class=show-all-rules-button>Show all (<!> more)\")",
+    "target": "wgi=rt(\"<button class=show-all-rules-button>显示全部 (还有 <!> 个)\")"
+  },
+  {
+    "id": "workbench.title.initialize-a-git-repository-to-create-worktrees",
+    "source": "Pu(ya,{title:\"Initialize a git repository to create worktrees.\"",
+    "target": "Pu(ya,{title:\"初始化 git 仓库以创建工作树。\""
+  },
+  {
+    "id": "workbench.F.run-history",
+    "source": "F=[{id:\"details\",label:\"设置\"},{id:\"runs\",label:\"Run History\"}]",
+    "target": "F=[{id:\"details\",label:\"设置\"},{id:\"runs\",label:\"运行历史\"}]"
+  },
+  {
+    "id": "workbench.children.no-cursor-managed-worktrees-on-this-machine",
+    "source": "children:\"No Cursor-managed worktrees on this machine.\"",
+    "target": "children:\"本机没有 Cursor 管理的工作树。\""
+  },
+  {
+    "id": "workbench.Sgi.button-class-show-all-rules-button-show-less",
+    "source": "Sgi=rt(\"<button class=show-all-rules-button>Show less\")",
+    "target": "Sgi=rt(\"<button class=show-all-rules-button>收起\")"
+  },
+  {
+    "id": "settings.ujb.span-class-openai-switch-text-not-using-key",
+    "source": "ujb=Ue(\"<span class=openai-switch-text>Not using key\")",
+    "target": "ujb=Ue(\"<span class=openai-switch-text>未使用密钥\")"
+  },
+  {
+    "id": "settings.HIm.span-class-openai-switch-text-not-using-key",
+    "source": "HIm=rt(\"<span class=openai-switch-text>Not using key\")",
+    "target": "HIm=rt(\"<span class=openai-switch-text>未使用密钥\")"
+  },
+  {
+    "id": "settings.ajb.span-class-openai-switch-text-using-key",
+    "source": "ajb=Ue(\"<span class=openai-switch-text>Using key\")",
+    "target": "ajb=Ue(\"<span class=openai-switch-text>正在使用密钥\")"
+  },
+  {
+    "id": "settings.$Im.span-class-openai-switch-text-using-key",
+    "source": "$Im=rt(\"<span class=openai-switch-text>Using key\")",
+    "target": "$Im=rt(\"<span class=openai-switch-text>正在使用密钥\")"
+  },
+  {
+    "id": "workbench.label.application-user-persistent-storage",
+    "source": "label:\"Application User Persistent Storage\"",
+    "target": "label:\"应用用户持久化存储\""
+  },
+  {
+    "id": "workbench.message.seeded-response-comparison",
+    "source": "message:\"Seeded response comparison\"",
+    "target": "message:\"种子响应对比\""
+  },
+  {
+    "id": "workbench.sUb.div-loading-subagents",
+    "source": "sUb=Ue(\"<div>Loading Subagents...\")",
+    "target": "sUb=Ue(\"<div>正在加载子智能体...\")"
+  },
+  {
+    "id": "workbench.cIm.div-loading-subagents",
+    "source": "cIm=rt(\"<div>Loading Subagents...\")",
+    "target": "cIm=rt(\"<div>正在加载子智能体...\")"
+  },
+  {
+    "id": "workbench.oUb.div-loading-commands",
+    "source": "oUb=Ue(\"<div>Loading Commands...\")",
+    "target": "oUb=Ue(\"<div>正在加载命令...\")"
+  },
+  {
+    "id": "workbench.label.auto-review-with-sandbox",
+    "source": "label:\"Auto-review (with Sandbox)\"",
+    "target": "label:\"自动审查 (含沙箱)\""
+  },
+  {
+    "id": "workbench.uIm.div-loading-commands",
+    "source": "uIm=rt(\"<div>Loading Commands...\")",
+    "target": "uIm=rt(\"<div>正在加载命令...\")"
+  },
+  {
+    "id": "workbench.title.convert-to-remote-control",
+    "source": "title:\"Convert to remote control\"",
+    "target": "title:\"转换为远程控制\""
+  },
+  {
+    "id": "workbench.rUb.div-loading-skills",
+    "source": "rUb=Ue(\"<div>Loading Skills...\")",
+    "target": "rUb=Ue(\"<div>正在加载技能...\")"
+  },
+  {
+    "id": "settings.YUb.div-no-results-found",
+    "source": "YUb=Ue(\"<div>No results found.\")",
+    "target": "YUb=Ue(\"<div>未找到结果。\")"
+  },
+  {
+    "id": "workbench.lIm.div-loading-skills",
+    "source": "lIm=rt(\"<div>Loading Skills...\")",
+    "target": "lIm=rt(\"<div>正在加载技能...\")"
+  },
+  {
+    "id": "settings.tsk.div-no-results-found",
+    "source": "tsk=rt(\"<div>No results found.\")",
+    "target": "tsk=rt(\"<div>未找到结果。\")"
+  },
+  {
+    "id": "workbench.yja.distro",
+    "source": "yja=[{id:\"host\",label:\"Distro\"}]",
+    "target": "yja=[{id:\"host\",label:\"发行版\"}]"
+  },
+  {
+    "id": "workbench.iUb.div-loading-rules",
+    "source": "iUb=Ue(\"<div>Loading Rules...\")",
+    "target": "iUb=Ue(\"<div>正在加载规则...\")"
+  },
+  {
+    "id": "workbench.aIm.div-loading-rules",
+    "source": "aIm=rt(\"<div>Loading Rules...\")",
+    "target": "aIm=rt(\"<div>正在加载规则...\")"
+  },
+  {
+    "id": "workbench.children.loading-settings",
+    "source": "children:\"Loading settings...\"",
+    "target": "children:\"正在加载设置...\""
+  },
+  {
+    "id": "workbench.tooltip.open-prompt-quality",
+    "source": "tooltip:\"Open Prompt Quality\"",
+    "target": "tooltip:\"在 Prompt Quality 中打开\""
+  },
+  {
+    "id": "workbench._Xm.div-no-changes-yet",
+    "source": "_Xm=rt(\"<div>No changes yet\")",
+    "target": "_Xm=rt(\"<div>暂无更改\")"
+  },
+  {
+    "id": "workbench.children.no-results-found",
+    "source": "children:\"No results found.\"",
+    "target": "children:\"未找到结果。\""
+  },
+  {
+    "id": "workbench.label.open-prompt-quality",
+    "source": "label:\"Open Prompt Quality\"",
+    "target": "label:\"在 Prompt Quality 中打开\""
+  },
+  {
+    "id": "workbench.children.create-snapshot",
+    "source": "children:\"Create Snapshot\"",
+    "target": "children:\"创建快照\""
+  },
+  {
+    "id": "workbench.children.usage-remaining",
+    "source": "children:\"Usage Remaining\"",
+    "target": "children:\"剩余用量\""
+  },
+  {
+    "id": "workbench.title.copy-link.glass",
+    "source": "re(Md,{title:\"Copy link\"",
+    "target": "re(Md,{title:\"复制链接\""
+  },
+  {
+    "id": "workbench.title.copy-link",
+    "source": "J(Bb,{title:\"Copy link\"",
+    "target": "J(Bb,{title:\"复制链接\""
+  },
+  {
+    "id": "workbench.label.copy-request-id",
+    "source": "label:\"Copy Request ID\"",
+    "target": "label:\"复制请求 ID\""
+  },
+  {
+    "id": "workbench.title.start-new-chat",
+    "source": "title:\"Start New Chat?\"",
+    "target": "title:\"新建聊天？\""
+  },
+  {
+    "id": "workbench.label.usage-remaining",
+    "source": "label:\"Usage Remaining\"",
+    "target": "label:\"剩余用量\""
+  },
+  {
+    "id": "workbench.children.open-window",
+    "source": "children:\"Open Window\"",
+    "target": "children:\"打开窗口\""
+  },
+  {
+    "id": "workbench.label.use-allowlist",
+    "source": "label:\"Use Allowlist\"",
+    "target": "label:\"使用允许列表\""
+  },
+  {
+    "id": "workbench.label.conversation",
+    "source": "label:\"Conversation\"",
+    "target": "label:\"对话\""
+  },
+  {
+    "id": "workbench.title.new-worktree",
+    "source": "title:\"New Worktree\"",
+    "target": "title:\"新建工作树\""
+  },
+  {
+    "id": "workbench.title.send-invite",
+    "source": "title:\"Send invite\"",
+    "target": "title:\"发送邀请\""
+  },
+  {
+    "id": "workbench.label.unlimited",
+    "source": "label:\"Unlimited\"",
+    "target": "label:\"无限制\""
+  },
+  {
+    "id": "workbench.title.worktrees",
+    "source": "title:\"Worktrees\"",
+    "target": "title:\"工作树\""
+  },
+  {
+    "id": "workbench.label.disabled",
+    "source": "label:\"Disabled\"",
+    "target": "label:\"已禁用\""
+  },
+  {
+    "id": "workbench.label.privacy",
+    "source": "label:\"Privacy\"",
+    "target": "label:\"隐私\""
+  },
+  {
+    "id": "workbench.label.restore",
+    "source": "label:\"Restore\"",
+    "target": "label:\"恢复\""
+  },
+  {
+    "id": "workbench.title.cleanup",
+    "source": "title:\"Cleanup\"",
+    "target": "title:\"清理\""
+  },
+  {
+    "id": "workbench.label.fixed",
+    "source": "label:\"Fixed\"",
+    "target": "label:\"固定\""
   }
 ]
