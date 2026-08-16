@@ -205,9 +205,9 @@ export class ManagerPanel {
         throw new Error('配置 cursorZhCn.enableWorkbenchPatch 已禁用，未执行补丁。');
       }
 
-      const result = await applyWorkbenchPatch(this.state.install.root, this.context, createScopedProgress(progress, 18, 58, 'Workbench 补丁'));
-      const nlsResult = await applyNlsMessagePatch(this.state.install.root, this.context, createScopedProgress(progress, 58, 78, 'NLS 消息表补丁'));
-      const runtimeState = await scanRuntimeState(createScopedProgress(progress, 78, 80, '扫描运行时状态库'));
+      const result = await applyWorkbenchPatch(this.state.install.root, this.context, createScopedProgress(progress, 18, 58, '界面汉化'));
+      const nlsResult = await applyNlsMessagePatch(this.state.install.root, this.context, createScopedProgress(progress, 58, 78, '消息表汉化'));
+      const runtimeState = await scanRuntimeState(createScopedProgress(progress, 78, 80, '检查界面缓存'));
       this.updateState({ patch: result.after, nlsPatch: nlsResult.after, runtimeState });
       this.log(`Workbench 补丁：本次写入 ${result.appliedRuleIds.length} 项/${result.appliedOccurrences} 处。`);
       this.log(`NLS 消息表补丁：本次写入 ${nlsResult.appliedRuleIds.length} 项/${nlsResult.appliedOccurrences} 处。`);
@@ -293,9 +293,9 @@ export class ManagerPanel {
         throw new Error('配置 cursorZhCn.enableWorkbenchPatch 已禁用，未执行补丁。');
       }
 
-      const result = await applyWorkbenchPatch(install.root, this.context, createScopedProgress(progress, 0, 58, 'Workbench 补丁'));
-      const nlsResult = await applyNlsMessagePatch(install.root, this.context, createScopedProgress(progress, 58, 92, 'NLS 消息表补丁'));
-      const runtimeState = await scanRuntimeState(createScopedProgress(progress, 92, 100, '扫描运行时状态库'));
+      const result = await applyWorkbenchPatch(install.root, this.context, createScopedProgress(progress, 0, 58, '界面汉化'));
+      const nlsResult = await applyNlsMessagePatch(install.root, this.context, createScopedProgress(progress, 58, 92, '消息表汉化'));
+      const runtimeState = await scanRuntimeState(createScopedProgress(progress, 92, 100, '检查界面缓存'));
       this.updateState({ patch: result.after, nlsPatch: nlsResult.after, runtimeState });
       this.log(`Cursor 根目录: ${result.after.cursorRoot}`);
       this.log(`Workbench 文件: ${result.after.filePath}`);
@@ -325,7 +325,7 @@ export class ManagerPanel {
       const languagePackCache = result.state === 'cursor-running'
         ? undefined
         : await cleanLanguagePackCache(createScopedProgress(progress, 82, 96, '重建语言包缓存'));
-      const runtimeState = await scanRuntimeState(createScopedProgress(progress, 96, 100, '复扫运行时状态库'));
+      const runtimeState = await scanRuntimeState(createScopedProgress(progress, 96, 100, '复查界面缓存'));
       this.updateState({ runtimeState });
       this.log(formatRuntimeCleanLog(result));
       if (languagePackCache) {
@@ -344,8 +344,8 @@ export class ManagerPanel {
         throw new Error('请先识别或选择有效的 Cursor 安装目录。');
       }
 
-      const result = await unapplyWorkbenchPatch(install.root, this.context, createScopedProgress(progress, 0, 62, 'Workbench 补丁'));
-      const nlsResult = await unapplyNlsMessagePatch(install.root, this.context, createScopedProgress(progress, 62, 100, 'NLS 消息表补丁'));
+      const result = await unapplyWorkbenchPatch(install.root, this.context, createScopedProgress(progress, 0, 62, '还原界面汉化'));
+      const nlsResult = await unapplyNlsMessagePatch(install.root, this.context, createScopedProgress(progress, 62, 100, '还原消息表汉化'));
       this.updateState({ patch: result.after, nlsPatch: nlsResult.after });
       this.log(`Workbench 文件: ${result.after.filePath}`);
       this.log(`NLS 消息表: ${nlsResult.after.filePath}`);
@@ -456,19 +456,19 @@ export class ManagerPanel {
 
     if (install.valid) {
       try {
-        patch = await scanWorkbenchPatch(install.root, this.context, createScopedProgress(progress, 10, 45, '扫描 Workbench 补丁数据'));
+        patch = await scanWorkbenchPatch(install.root, this.context, createScopedProgress(progress, 10, 45, '检查界面汉化状态'));
       } catch (error) {
         this.log(error instanceof Error ? error.message : String(error));
       }
 
       try {
-        nlsPatch = await scanNlsMessagePatch(install.root, this.context, createScopedProgress(progress, 45, 78, '扫描 NLS 消息表补丁数据'));
+        nlsPatch = await scanNlsMessagePatch(install.root, this.context, createScopedProgress(progress, 45, 78, '检查消息表汉化状态'));
       } catch (error) {
         this.log(error instanceof Error ? error.message : String(error));
       }
 
       try {
-        runtimeState = await scanRuntimeState(createScopedProgress(progress, 78, 95, '扫描运行时状态库'));
+        runtimeState = await scanRuntimeState(createScopedProgress(progress, 78, 95, '检查界面缓存'));
       } catch (error) {
         this.log(error instanceof Error ? error.message : String(error));
       }
@@ -874,7 +874,7 @@ function getNextAction(state: ManagerState, patchStatusText: Record<string, stri
   }
 
   if (state.patch.state !== 'applied' || state.nlsPatch.state !== 'applied') {
-    return `当前 Workbench 为「${patchStatusText[state.patch.state]}」，NLS 为「${patchStatusText[state.nlsPatch.state]}」。建议点击「应用汉化补丁」。`;
+    return `当前界面汉化「${patchStatusText[state.patch.state]}」，消息表汉化「${patchStatusText[state.nlsPatch.state]}」。建议点击「应用汉化补丁」。`;
   }
 
   return '补丁已应用。若界面仍是旧文本，点击「一键重启并清理 Cursor」；如需回退，在右侧选择对应目标的备份恢复。';

@@ -47,7 +47,7 @@ let cachedRuntimeRuleIdPrefixMatcher: ((ruleId: string) => boolean) | undefined;
 export async function loadWorkbenchPatchData(progress?: ProgressCallback): Promise<WorkbenchPatchData> {
   if (cachedPatchData) {
     await reportProgress(progress, {
-      message: `补丁数据已加载（${cachedPatchData.rules.length}/${cachedPatchData.allRules.length} 条可用）`,
+      message: '翻译规则已就绪',
       percent: 100,
       current: cachedPatchData.rules.length,
       total: cachedPatchData.allRules.length
@@ -58,12 +58,12 @@ export async function loadWorkbenchPatchData(progress?: ProgressCallback): Promi
   if (!loadingPatchData) {
     loadingPatchData = loadWorkbenchPatchDataCore(progress);
   } else {
-    await reportProgress(progress, { message: '等待补丁数据加载完成', percent: 20 });
+    await reportProgress(progress, { message: '正在加载翻译规则', percent: 20 });
   }
 
   cachedPatchData = await loadingPatchData;
   await reportProgress(progress, {
-    message: `补丁数据加载完成（${cachedPatchData.rules.length}/${cachedPatchData.allRules.length} 条可用）`,
+    message: '翻译规则已就绪',
     percent: 100,
     current: cachedPatchData.rules.length,
     total: cachedPatchData.allRules.length
@@ -74,7 +74,7 @@ export async function loadWorkbenchPatchData(progress?: ProgressCallback): Promi
 export async function loadNlsMessagePatchRules(progress?: ProgressCallback): Promise<readonly NlsMessagePatchRule[]> {
   if (cachedNlsMessagePatchRules) {
     await reportProgress(progress, {
-      message: `NLS 消息表规则已加载（${cachedNlsMessagePatchRules.length} 条）`,
+      message: '翻译规则已就绪',
       percent: 100,
       current: cachedNlsMessagePatchRules.length,
       total: cachedNlsMessagePatchRules.length
@@ -85,12 +85,12 @@ export async function loadNlsMessagePatchRules(progress?: ProgressCallback): Pro
   if (!loadingNlsMessagePatchRules) {
     loadingNlsMessagePatchRules = loadNlsMessagePatchRulesCore(progress);
   } else {
-    await reportProgress(progress, { message: '等待 NLS 消息表规则加载完成', percent: 20 });
+    await reportProgress(progress, { message: '正在加载翻译规则', percent: 20 });
   }
 
   cachedNlsMessagePatchRules = await loadingNlsMessagePatchRules;
   await reportProgress(progress, {
-    message: `NLS 消息表规则加载完成（${cachedNlsMessagePatchRules.length} 条）`,
+    message: '翻译规则已就绪',
     percent: 100,
     current: cachedNlsMessagePatchRules.length,
     total: cachedNlsMessagePatchRules.length
@@ -99,37 +99,37 @@ export async function loadNlsMessagePatchRules(progress?: ProgressCallback): Pro
 }
 
 async function loadWorkbenchPatchDataCore(progress?: ProgressCallback): Promise<WorkbenchPatchData> {
-  await reportProgress(progress, { message: '读取补丁运行策略', percent: 5 });
+  await reportProgress(progress, { message: '正在加载翻译规则', percent: 5 });
   const runtimePolicy = await readWorkbenchPatchRuntimePolicy();
   cachedSafeSourcePrefixMatcher = createPrefixMatcher(runtimePolicy.safeSourcePrefixes);
   cachedRuntimeRuleIdPrefixMatcher = createPrefixMatcher(runtimePolicy.runtimeRuleIdPrefixes);
 
-  await reportProgress(progress, { message: '读取补丁规则文件', percent: 20 });
+  await reportProgress(progress, { message: '正在加载翻译规则', percent: 20 });
   const rawRules = await readJson(patchDataPath);
   if (!Array.isArray(rawRules)) {
     throw new Error(`无效的 workbench 补丁映射文件: ${patchDataPath}`);
   }
 
-  const allRules = await parseWorkbenchPatchRules(rawRules, createScopedProgress(progress, 30, 70, '校验补丁规则'));
-  const rules = await filterRuntimeSafePatchRules(allRules, runtimePolicy, createScopedProgress(progress, 70, 95, '筛选运行时安全规则'));
+  const allRules = await parseWorkbenchPatchRules(rawRules, createScopedProgress(progress, 30, 70, '正在校验规则'));
+  const rules = await filterRuntimeSafePatchRules(allRules, runtimePolicy, createScopedProgress(progress, 70, 95, '正在筛选规则'));
 
   return { runtimePolicy, allRules, rules };
 }
 
 async function loadNlsMessagePatchRulesCore(progress?: ProgressCallback): Promise<readonly NlsMessagePatchRule[]> {
-  await reportProgress(progress, { message: '读取 NLS 消息表规则文件', percent: 20 });
+  await reportProgress(progress, { message: '正在加载翻译规则', percent: 20 });
   const rawRules = await readJson(nlsMessagePatchDataPath);
   if (!Array.isArray(rawRules)) {
     throw new Error(`无效的 NLS 消息表补丁映射文件: ${nlsMessagePatchDataPath}`);
   }
 
-  return parseNlsMessagePatchRules(rawRules, createScopedProgress(progress, 30, 95, '校验 NLS 消息表规则'));
+  return parseNlsMessagePatchRules(rawRules, createScopedProgress(progress, 30, 95, '正在校验规则'));
 }
 
 async function parseWorkbenchPatchRules(rawRules: readonly unknown[], progress?: ProgressCallback): Promise<readonly WorkbenchPatchRule[]> {
   const rules: WorkbenchPatchRule[] = [];
   const total = rawRules.length;
-  await reportProgress(progress, { message: '开始校验补丁规则', percent: 0, current: 0, total });
+  await reportProgress(progress, { message: '正在校验规则', percent: 0, current: 0, total });
 
   for (let index = 0; index < total; index += 1) {
     const rule = rawRules[index];
@@ -141,7 +141,7 @@ async function parseWorkbenchPatchRules(rawRules: readonly unknown[], progress?:
     rules.push(rule);
     if (shouldYieldRuleProgress(index + 1, total, progress)) {
       await reportProgress(progress, {
-        message: `校验补丁规则 ${index + 1}/${total}`,
+        message: '正在校验规则',
         percent: toPercent(index + 1, total),
         current: index + 1,
         total
@@ -156,7 +156,7 @@ async function parseWorkbenchPatchRules(rawRules: readonly unknown[], progress?:
 async function parseNlsMessagePatchRules(rawRules: readonly unknown[], progress?: ProgressCallback): Promise<readonly NlsMessagePatchRule[]> {
   const rules: NlsMessagePatchRule[] = [];
   const total = rawRules.length;
-  await reportProgress(progress, { message: '开始校验 NLS 消息表规则', percent: 0, current: 0, total });
+  await reportProgress(progress, { message: '正在校验规则', percent: 0, current: 0, total });
 
   for (let index = 0; index < total; index += 1) {
     const rule = rawRules[index];
@@ -167,7 +167,7 @@ async function parseNlsMessagePatchRules(rawRules: readonly unknown[], progress?
     rules.push(rule);
     if ((index + 1) % 25 === 0 || index + 1 === total) {
       await reportProgress(progress, {
-        message: `校验 NLS 消息表规则 ${index + 1}/${total}`,
+        message: '正在校验规则',
         percent: toPercent(index + 1, total),
         current: index + 1,
         total
@@ -186,7 +186,7 @@ async function filterRuntimeSafePatchRules(
 ): Promise<readonly WorkbenchPatchRule[]> {
   const rules: WorkbenchPatchRule[] = [];
   const total = allRules.length;
-  await reportProgress(progress, { message: '开始筛选运行时安全规则', percent: 0, current: 0, total });
+  await reportProgress(progress, { message: '正在筛选规则', percent: 0, current: 0, total });
 
   for (let index = 0; index < total; index += 1) {
     const rule = allRules[index];
@@ -196,7 +196,7 @@ async function filterRuntimeSafePatchRules(
 
     if (shouldYieldRuleProgress(index + 1, total, progress)) {
       await reportProgress(progress, {
-        message: `筛选运行时安全规则 ${index + 1}/${total}`,
+        message: '正在筛选规则',
         percent: toPercent(index + 1, total),
         current: index + 1,
         total

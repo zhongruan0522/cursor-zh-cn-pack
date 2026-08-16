@@ -73,37 +73,30 @@ export interface NlsMessagePatchRestoreResult {
 }
 
 export async function scanNlsMessagePatch(root: string, context: vscode.ExtensionContext, progress?: ProgressCallback): Promise<NlsMessagePatchScanResult> {
-  const install = await validateCursorRoot(root, 'NLS 消息表补丁扫描', createScopedProgress(progress, 0, 15, '校验安装目录'));
+  const install = await validateCursorRoot(root, 'NLS 消息表补丁扫描', createScopedProgress(progress, 0, 15));
   if (!install.valid) {
     throw new Error(install.problems.join('\n'));
   }
 
-  const rules = await loadNlsMessagePatchRules(createScopedProgress(progress, 15, 35, '加载 NLS 消息表规则'));
-  const result = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 35, 99, '扫描 NLS 消息表'));
-  await reportProgress(progress, {
-    message: `NLS 消息表扫描完成，命中 ${result.matchedRules}/${result.totalRules} 条规则`,
-    percent: 100,
-    current: result.matchedRules,
-    total: result.totalRules
-  });
+  const rules = await loadNlsMessagePatchRules(createScopedProgress(progress, 15, 35));
+  const result = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 35, 99, '正在扫描翻译状态'));
+  await reportProgress(progress, { message: '检查完成', percent: 100 });
   return result;
 }
 
 export async function applyNlsMessagePatch(root: string, context: vscode.ExtensionContext, progress?: ProgressCallback): Promise<NlsMessagePatchApplyResult> {
-  const install = await validateCursorRoot(root, 'NLS 消息表补丁应用', createScopedProgress(progress, 0, 5, '校验安装目录'));
+  const install = await validateCursorRoot(root, 'NLS 消息表补丁应用', createScopedProgress(progress, 0, 5));
   if (!install.valid) {
     throw new Error(install.problems.join('\n'));
   }
 
-  const rules = await loadNlsMessagePatchRules(createScopedProgress(progress, 5, 15, '加载 NLS 消息表规则'));
-  const before = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 15, 35, '扫描 NLS 消息表状态'));
+  const rules = await loadNlsMessagePatchRules(createScopedProgress(progress, 5, 15));
+  const before = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 15, 35));
 
   if (before.sourceHits === 0) {
     await reportProgress(progress, {
-      message: before.targetHits > 0 ? 'NLS 消息表已处于应用状态' : 'NLS 消息表没有命中可补丁来源',
-      percent: 100,
-      current: before.matchedRules,
-      total: before.totalRules
+      message: before.targetHits > 0 ? '汉化已是最新状态' : '没有需要翻译的内容',
+      percent: 100
     });
     return {
       changed: false,
@@ -115,14 +108,14 @@ export async function applyNlsMessagePatch(root: string, context: vscode.Extensi
     };
   }
 
-  await reportProgress(progress, { message: '读取 NLS 消息表', percent: 38 });
+  await reportProgress(progress, { message: '正在读取文件', percent: 38 });
   const originalContent = await fs.readFile(install.nlsMessagesPath, 'utf8');
   const originalMessages = parseMessagesContent(originalContent, install.nlsMessagesPath);
   const originalHash = sha256(originalContent);
   const locations = await readLocations(install.nlsKeysPath);
   const locationIndex = indexLocations(locations);
 
-  await reportProgress(progress, { message: '创建或复用 NLS 原始备份', percent: 42 });
+  await reportProgress(progress, { message: '正在备份原文件', percent: 42 });
   const backupPath = await ensureBackup(install, originalContent, context);
 
   const patchedMessages = [...originalMessages];
@@ -140,10 +133,8 @@ export async function applyNlsMessagePatch(root: string, context: vscode.Extensi
 
     if ((index + 1) % 10 === 0 || index + 1 === rules.length) {
       await reportProgress(progress, {
-        message: `应用 NLS 消息表规则 ${index + 1}/${rules.length}`,
-        percent: 45 + toPercent(index + 1, rules.length) * 0.3,
-        current: index + 1,
-        total: rules.length
+        message: '正在写入翻译',
+        percent: 45 + toPercent(index + 1, rules.length) * 0.3
       });
       await yieldToEventLoop();
     }
@@ -151,8 +142,8 @@ export async function applyNlsMessagePatch(root: string, context: vscode.Extensi
 
   const patchedContent = `${JSON.stringify(patchedMessages)}\n`;
   if (patchedContent === originalContent) {
-    const after = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 80, 99, '复扫 NLS 消息表'));
-    await reportProgress(progress, { message: 'NLS 消息表未写入：没有需要替换的内容', percent: 100 });
+    const after = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 80, 99, '正在复核结果'));
+    await reportProgress(progress, { message: '没有需要翻译的内容', percent: 100 });
     return {
       changed: false,
       backupPath,
@@ -163,7 +154,7 @@ export async function applyNlsMessagePatch(root: string, context: vscode.Extensi
     };
   }
 
-  await reportProgress(progress, { message: '写入 NLS 消息表', percent: 86, current: rules.length, total: rules.length });
+  await reportProgress(progress, { message: '正在保存文件', percent: 86 });
   await fs.writeFile(install.nlsMessagesPath, patchedContent, 'utf8');
   const patchedHash = sha256(patchedContent);
 
@@ -179,13 +170,8 @@ export async function applyNlsMessagePatch(root: string, context: vscode.Extensi
   };
   await context.globalState.update(metadataKey, metadata);
 
-  const after = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 92, 99, '复扫 NLS 消息表'));
-  await reportProgress(progress, {
-    message: `NLS 消息表补丁完成，处理 ${appliedRuleIds.length}/${rules.length} 条规则`,
-    percent: 100,
-    current: appliedRuleIds.length,
-    total: rules.length
-  });
+  const after = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 92, 99, '正在复核结果'));
+  await reportProgress(progress, { message: '消息表汉化完成', percent: 100 });
   return {
     changed: true,
     backupPath,
@@ -197,15 +183,15 @@ export async function applyNlsMessagePatch(root: string, context: vscode.Extensi
 }
 
 export async function unapplyNlsMessagePatch(root: string, context: vscode.ExtensionContext, progress?: ProgressCallback): Promise<NlsMessagePatchUnapplyResult> {
-  const install = await validateCursorRoot(root, 'NLS 消息表补丁卸载', createScopedProgress(progress, 0, 5, '校验安装目录'));
+  const install = await validateCursorRoot(root, 'NLS 消息表补丁卸载', createScopedProgress(progress, 0, 5));
   if (!install.valid) {
     throw new Error(install.problems.join('\n'));
   }
 
-  const rules = await loadNlsMessagePatchRules(createScopedProgress(progress, 5, 15, '加载 NLS 消息表规则'));
-  const before = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 15, 35, '扫描 NLS 消息表状态'));
+  const rules = await loadNlsMessagePatchRules(createScopedProgress(progress, 5, 15));
+  const before = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 15, 35));
   if (before.targetHits === 0) {
-    await reportProgress(progress, { message: '未检测到 NLS 消息表中文补丁', percent: 100, current: 0, total: rules.length });
+    await reportProgress(progress, { message: '未检测到已应用的中文补丁', percent: 100 });
     return {
       changed: false,
       unappliedRuleIds: [],
@@ -214,7 +200,7 @@ export async function unapplyNlsMessagePatch(root: string, context: vscode.Exten
     };
   }
 
-  await reportProgress(progress, { message: '读取 NLS 消息表', percent: 40 });
+  await reportProgress(progress, { message: '正在读取文件', percent: 40 });
   const currentContent = await fs.readFile(install.nlsMessagesPath, 'utf8');
   const currentMessages = parseMessagesContent(currentContent, install.nlsMessagesPath);
   const locations = await readLocations(install.nlsKeysPath);
@@ -232,10 +218,8 @@ export async function unapplyNlsMessagePatch(root: string, context: vscode.Exten
 
     if ((index + 1) % 10 === 0 || index + 1 === rules.length) {
       await reportProgress(progress, {
-        message: `卸载 NLS 消息表规则 ${index + 1}/${rules.length}`,
-        percent: 45 + toPercent(index + 1, rules.length) * 0.3,
-        current: index + 1,
-        total: rules.length
+        message: '正在还原翻译',
+        percent: 45 + toPercent(index + 1, rules.length) * 0.3
       });
       await yieldToEventLoop();
     }
@@ -243,8 +227,8 @@ export async function unapplyNlsMessagePatch(root: string, context: vscode.Exten
 
   const restoredContent = `${JSON.stringify(restoredMessages)}\n`;
   if (restoredContent === currentContent) {
-    const after = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 80, 99, '复扫 NLS 消息表'));
-    await reportProgress(progress, { message: 'NLS 消息表未卸载：没有需要还原的内容', percent: 100 });
+    const after = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 80, 99, '正在复核结果'));
+    await reportProgress(progress, { message: '没有需要还原的内容', percent: 100 });
     return {
       changed: false,
       unappliedRuleIds,
@@ -266,13 +250,8 @@ export async function unapplyNlsMessagePatch(root: string, context: vscode.Exten
     } satisfies NlsMessagePatchMetadata);
   }
 
-  const after = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 92, 99, '复扫 NLS 消息表'));
-  await reportProgress(progress, {
-    message: `NLS 消息表补丁卸载完成，处理 ${unappliedRuleIds.length}/${rules.length} 条规则`,
-    percent: 100,
-    current: unappliedRuleIds.length,
-    total: rules.length
-  });
+  const after = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 92, 99, '正在复核结果'));
+  await reportProgress(progress, { message: '消息表已还原', percent: 100 });
   return {
     changed: true,
     safetyBackupPath,
@@ -283,14 +262,14 @@ export async function unapplyNlsMessagePatch(root: string, context: vscode.Exten
 }
 
 export async function restoreNlsMessageBackup(root: string, context: vscode.ExtensionContext, backupPath?: string, progress?: ProgressCallback): Promise<NlsMessagePatchRestoreResult> {
-  const install = await validateCursorRoot(root, 'NLS 消息表备份恢复', createScopedProgress(progress, 0, 8, '校验安装目录'));
+  const install = await validateCursorRoot(root, 'NLS 消息表备份恢复', createScopedProgress(progress, 0, 8));
   if (!install.valid) {
     throw new Error(install.problems.join('\n'));
   }
 
-  const rules = await loadNlsMessagePatchRules(createScopedProgress(progress, 8, 15, '加载 NLS 消息表规则'));
+  const rules = await loadNlsMessagePatchRules(createScopedProgress(progress, 8, 15));
   const metadata = getNlsMessagePatchMetadata(context);
-  const backups = await scanBackupFiles(install, context, rules, createScopedProgress(progress, 15, 45, '扫描 NLS 备份'));
+  const backups = await scanBackupFiles(install, context, rules, createScopedProgress(progress, 15, 45, '正在检查备份'));
   const selectedBackup = backupPath
     ? backups.find(backup => samePath(backup.path, backupPath))
     : backups.find(backup => metadata?.backupPath && samePath(backup.path, metadata.backupPath));
@@ -299,19 +278,19 @@ export async function restoreNlsMessageBackup(root: string, context: vscode.Exte
     throw new Error(backupPath ? `所选 NLS 备份文件不在当前 Cursor 安装的备份列表中: ${backupPath}` : '没有选择可恢复的 NLS 备份。');
   }
 
-  await reportProgress(progress, { message: '校验 NLS 备份文件', percent: 50, current: 1, total: 1 });
+  await reportProgress(progress, { message: '正在校验备份', percent: 50 });
   await assertFile(selectedBackup.path, 'NLS 备份文件不存在');
 
-  await reportProgress(progress, { message: '读取当前 NLS 消息表', percent: 58, current: 1, total: 1 });
+  await reportProgress(progress, { message: '正在读取当前文件', percent: 58 });
   const currentContent = await fs.readFile(install.nlsMessagesPath, 'utf8');
   const safetyBackupPath = backupPathFor(install, 'before-restore');
-  await reportProgress(progress, { message: '保存 NLS 恢复前快照', percent: 68, current: 1, total: 1 });
+  await reportProgress(progress, { message: '正在保存恢复前快照', percent: 68 });
   await fs.writeFile(safetyBackupPath, currentContent, 'utf8');
 
-  await reportProgress(progress, { message: '读取 NLS 备份内容', percent: 78, current: 1, total: 1 });
+  await reportProgress(progress, { message: '正在读取备份', percent: 78 });
   const backupContent = await fs.readFile(selectedBackup.path, 'utf8');
   parseMessagesContent(backupContent, selectedBackup.path);
-  await reportProgress(progress, { message: '写入 NLS 备份内容', percent: 88, current: 1, total: 1 });
+  await reportProgress(progress, { message: '正在恢复备份', percent: 88 });
   await fs.writeFile(install.nlsMessagesPath, backupContent, 'utf8');
 
   if (metadata) {
@@ -322,8 +301,8 @@ export async function restoreNlsMessageBackup(root: string, context: vscode.Exte
     } satisfies NlsMessagePatchMetadata);
   }
 
-  const after = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 92, 99, '复扫 NLS 消息表'));
-  await reportProgress(progress, { message: 'NLS 备份恢复完成', percent: 100, current: 1, total: 1 });
+  const after = await scanInstallNlsMessages(install, context, rules, createScopedProgress(progress, 92, 99, '正在复核结果'));
+  await reportProgress(progress, { message: '恢复完成', percent: 100 });
   return {
     restored: true,
     backupPath: selectedBackup.path,
@@ -342,7 +321,7 @@ async function scanInstallNlsMessages(
   rules: readonly NlsMessagePatchRule[],
   progress?: ProgressCallback
 ): Promise<NlsMessagePatchScanResult> {
-  await reportProgress(progress, { message: '读取 NLS keys/messages', percent: 5 });
+  await reportProgress(progress, { message: '正在读取文件', percent: 5 });
   const [locations, messagesContent] = await Promise.all([
     readLocations(install.nlsKeysPath),
     fs.readFile(install.nlsMessagesPath, 'utf8')
@@ -374,10 +353,8 @@ async function scanInstallNlsMessages(
 
     if ((index + 1) % 10 === 0 || index + 1 === rules.length) {
       await reportProgress(progress, {
-        message: `扫描 NLS 消息表规则 ${index + 1}/${rules.length}`,
-        percent: 15 + toPercent(index + 1, rules.length) * 0.75,
-        current: index + 1,
-        total: rules.length
+        message: '正在扫描翻译状态',
+        percent: 15 + toPercent(index + 1, rules.length) * 0.75
       });
       await yieldToEventLoop();
     }
@@ -387,7 +364,7 @@ async function scanInstallNlsMessages(
   const targetHits = statuses.reduce((sum, rule) => sum + rule.targetHits, 0);
   const matchedRules = statuses.filter(rule => rule.sourceHits > 0 || rule.targetHits > 0).length;
   const metadata = getNlsMessagePatchMetadata(context);
-  const backups = await scanBackupFiles(install, context, rules, createScopedProgress(progress, 90, 98, '扫描 NLS 备份'));
+  const backups = await scanBackupFiles(install, context, rules, createScopedProgress(progress, 90, 98, '正在检查备份'));
 
   return {
     state: getPatchState(sourceHits, targetHits, matchedRules),
@@ -469,18 +446,18 @@ async function scanBackupFiles(
   const locations = await readLocations(install.nlsKeysPath);
   let entries: string[];
 
-  await reportProgress(progress, { message: '读取 NLS 备份目录', percent: 0 });
+  await reportProgress(progress, { message: '正在读取备份目录', percent: 0 });
   try {
     entries = await fs.readdir(directory);
   } catch {
-    await reportProgress(progress, { message: 'NLS 备份目录不可读取', percent: 100, current: 0, total: 0 });
+    await reportProgress(progress, { message: '备份目录不可读取', percent: 100 });
     return [];
   }
 
   const names = entries.filter(name => name.startsWith(backupFilePrefix));
   const backups: PatchBackupInfo[] = [];
   if (names.length === 0) {
-    await reportProgress(progress, { message: '未发现 NLS 备份文件', percent: 100, current: 0, total: 0 });
+    await reportProgress(progress, { message: '未发现备份文件', percent: 100 });
     return [];
   }
 
@@ -491,10 +468,8 @@ async function scanBackupFiles(
     }
 
     await reportProgress(progress, {
-      message: `扫描 NLS 备份文件 ${index + 1}/${names.length}`,
-      percent: toPercent(index + 1, names.length),
-      current: index + 1,
-      total: names.length
+      message: '正在检查备份',
+      percent: toPercent(index + 1, names.length)
     });
     await yieldToEventLoop();
   }
