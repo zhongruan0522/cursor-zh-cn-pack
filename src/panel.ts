@@ -80,16 +80,47 @@ export class ManagerPanel {
           startedAt
         }
       });
-      this.render();
+      this.postProgressUpdate();
     };
 
     try {
-      await reportProgress(progress, { message: '准备开始', percent: 0 });
+      this.updateState({
+        progress: {
+          message: '准备开始',
+          percent: 0,
+          operation,
+          startedAt
+        }
+      });
+      this.render();
       return await task(progress);
     } finally {
       this.updateState({ progress: undefined });
       this.render();
     }
+  }
+
+  private postProgressUpdate(): void {
+    if (this.disposed) {
+      return;
+    }
+
+    const progress = this.state.progress;
+    if (!progress) {
+      return;
+    }
+
+    this.panel.webview.postMessage({
+      type: 'progress',
+      progress: {
+        operation: progress.operation,
+        message: progress.message,
+        percent: progress.percent,
+        current: progress.current,
+        total: progress.total
+      },
+      logs: this.logs
+    });
   }
 
   private updateState(update: Omit<Partial<ManagerState>, 'logs'>): void {
@@ -745,6 +776,66 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
         });
       });
     });
+
+    window.addEventListener('message', event => {
+      const message = event.data;
+      if (!message || message.type !== 'progress') {
+        return;
+      }
+
+      const section = document.getElementById('progressSection');
+      if (!section) {
+        return;
+      }
+
+      section.hidden = false;
+
+      const operation = document.getElementById('progressOperation');
+      if (operation) {
+        operation.textContent = message.progress.operation ?? '';
+      }
+
+      const percent = document.getElementById('progressPercent');
+      if (percent) {
+        percent.textContent = message.progress.percent + '%';
+      }
+
+      const messageEl = document.getElementById('progressMessage');
+      if (messageEl) {
+        messageEl.textContent = message.progress.message ?? '';
+      }
+
+      const fill = document.getElementById('progressFill');
+      if (fill) {
+        fill.style.width = message.progress.percent + '%';
+      }
+
+      const track = document.getElementById('progressTrack');
+      if (track) {
+        track.setAttribute('aria-valuenow', String(message.progress.percent));
+      }
+
+      const count = document.getElementById('progressCount');
+      if (count) {
+        if (message.progress.current !== undefined && message.progress.total !== undefined) {
+          count.hidden = false;
+          count.textContent = '当前条数：' + message.progress.current + ' / ' + message.progress.total;
+        } else {
+          count.hidden = true;
+        }
+      }
+
+      const logBox = document.querySelector('.log.mono');
+      if (logBox && Array.isArray(message.logs)) {
+        logBox.innerHTML = message.logs.length
+          ? message.logs.map(line => {
+              const div = document.createElement('div');
+              div.textContent = line;
+              return div.innerHTML;
+            }).join('<br>')
+          : '暂无日志。执行识别、扫描、应用或恢复后，这里会显示结果摘要。';
+      }
+    });
   </script>
 </body>
 </html>`;
@@ -904,22 +995,22 @@ function renderProblems(problems: readonly string[]): string {
 }
 
 function renderProgressSection(progress: ManagerProgressState | undefined): string {
-  if (!progress) {
-    return '';
-  }
+  const hidden = progress ? '' : ' hidden';
+  const operation = progress?.operation ?? '';
+  const percent = progress?.percent ?? 0;
+  const message = progress?.message ?? '';
+  const count = progress && progress.current !== undefined && progress.total !== undefined
+    ? `<div class="progress-count mono" id="progressCount">当前条数：${progress.current} / ${progress.total}</div>`
+    : '<div class="progress-count mono" id="progressCount" hidden></div>';
 
-  const count = progress.current !== undefined && progress.total !== undefined
-    ? `<div class="progress-count mono">当前条数：${progress.current} / ${progress.total}</div>`
-    : '';
-
-  return `<section class="card progress gap-top" aria-live="polite">
+  return `<section class="card progress gap-top" id="progressSection" aria-live="polite"${hidden}>
     <div class="progress-head">
-      <div class="progress-title">${escapeHtml(progress.operation)}</div>
-      <div class="mono">${progress.percent}%</div>
+      <div class="progress-title" id="progressOperation">${escapeHtml(operation)}</div>
+      <div class="mono" id="progressPercent">${percent}%</div>
     </div>
-    <div class="progress-msg">${escapeHtml(progress.message)}</div>
-    <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress.percent}">
-      <div class="fill" style="width: ${progress.percent}%"></div>
+    <div class="progress-msg" id="progressMessage">${escapeHtml(message)}</div>
+    <div class="track" id="progressTrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">
+      <div class="fill" id="progressFill" style="width: ${percent}%"></div>
     </div>
     ${count}
   </section>`;
