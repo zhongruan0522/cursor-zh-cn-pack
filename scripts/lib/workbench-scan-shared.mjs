@@ -10,6 +10,70 @@ export async function exists(filePath) {
   }
 }
 
+// Cursor 前端 bundle 清单：desktop 为主界面，glass 为 Agents 窗口，automations 为 Automations 面板。
+// 运行时补丁器对 desktop/glass 共用同一份规则表，automations 尚未接入补丁，扫描需全部覆盖。
+export const WORKBENCH_BUNDLES = [
+  { id: 'desktop', file: 'workbench.desktop.main.js', label: '主界面' },
+  { id: 'glass', file: 'workbench.glass.main.js', label: 'Agents 窗口' },
+  { id: 'automations', file: 'workbench.anysphere-ui-automations.js', label: 'Automations 面板' }
+];
+
+async function findAppDir(cursorRoot) {
+  const root = path.resolve(cursorRoot);
+  if (await exists(path.join(root, 'out', 'vs', 'workbench', 'workbench.desktop.main.js'))) {
+    return root;
+  }
+  const appDir = path.join(root, 'resources', 'app');
+  if (await exists(path.join(appDir, 'out', 'vs', 'workbench', 'workbench.desktop.main.js'))) {
+    return appDir;
+  }
+  return undefined;
+}
+
+// 自动探测 Cursor 安装目录：系统级 Program Files → 用户级 LocalAppData → 其他盘 Program Files → 旧默认 D:\cursor。
+export async function resolveCursorRoot(explicit) {
+  const candidates = [];
+  if (explicit) candidates.push(explicit);
+  if (process.env.CURSOR_ROOT) candidates.push(process.env.CURSOR_ROOT);
+  candidates.push('C:\\Program Files\\Cursor');
+  if (process.env.LOCALAPPDATA) {
+    candidates.push(path.join(process.env.LOCALAPPDATA, 'Programs', 'Cursor'));
+  }
+  for (const driveLetter of 'DEFGHIJKLMNOPQRSTUVWXYZ') {
+    candidates.push(`${driveLetter}:\\Program Files\\Cursor`);
+  }
+  candidates.push('D:\\cursor');
+
+  const tried = [];
+  for (const candidate of candidates) {
+    const appDir = await findAppDir(candidate);
+    if (appDir) return appDir;
+    tried.push(candidate);
+  }
+
+  throw new Error(`没有找到 Cursor 安装目录，已尝试：${[...new Set(tried)].join('、')}`);
+}
+
+// 解析全部可用的 workbench bundle 扫描目标。
+export async function resolveWorkbenchTargets(cursorRootInput) {
+  const appDir = cursorRootInput
+    ? (await findAppDir(cursorRootInput)) ?? (await resolveCursorRoot())
+    : await resolveCursorRoot();
+
+  const targets = [];
+  for (const bundle of WORKBENCH_BUNDLES) {
+    const filePath = path.join(appDir, 'out', 'vs', 'workbench', bundle.file);
+    if (await exists(filePath)) {
+      targets.push({ ...bundle, filePath });
+    }
+  }
+
+  if (targets.length === 0) {
+    throw new Error(`在 ${appDir} 下没有找到任何 workbench bundle`);
+  }
+  return { appDir, targets };
+}
+
 export async function readJson(filePath) {
   return JSON.parse(await fs.readFile(filePath, 'utf8'));
 }
@@ -17,22 +81,6 @@ export async function readJson(filePath) {
 export async function writeJson(filePath, value) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
-}
-
-export async function resolveWorkbenchPath(cursorRootInput) {
-  const cursorRoot = path.resolve(cursorRootInput);
-  const directWorkbench = path.join(cursorRoot, 'out', 'vs', 'workbench', 'workbench.desktop.main.js');
-  if (await exists(directWorkbench)) {
-    return { appDir: cursorRoot, workbenchPath: directWorkbench };
-  }
-
-  const appDir = path.join(cursorRoot, 'resources', 'app');
-  const nestedWorkbench = path.join(appDir, 'out', 'vs', 'workbench', 'workbench.desktop.main.js');
-  if (await exists(nestedWorkbench)) {
-    return { appDir, workbenchPath: nestedWorkbench };
-  }
-
-  throw new Error(`没有找到 workbench.desktop.main.js：${directWorkbench} 或 ${nestedWorkbench}`);
 }
 
 export function decodeJsString(raw) {

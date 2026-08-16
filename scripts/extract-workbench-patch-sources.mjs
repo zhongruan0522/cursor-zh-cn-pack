@@ -14,7 +14,7 @@ import {
   lineColumnAt,
   normalizeText,
   readJson,
-  resolveWorkbenchPath,
+  resolveWorkbenchTargets,
   slugifyId,
   summarizeCodeBlock,
   writeJson
@@ -71,7 +71,7 @@ const DEFAULT_UI_KEYS = [
 
 function parseArgs(argv) {
   const options = {
-    cursorRoot: process.env.CURSOR_ROOT || 'D:\\cursor',
+    cursorRoot: '',
     scope: 'settings',
     minConfidence: 'high',
     includeApplied: false,
@@ -158,23 +158,25 @@ function confidenceFor({ kind, innerText, highConfidencePatterns, lowConfidenceP
   return 'medium';
 }
 
+// 安全前缀白名单补充判断：这些结构化候选天然以后文校验过的形态出现，
+// 不再依赖压缩符号（me/Mr/Re/ot/z/gX/Jf/anh 等会随 Cursor 构建变化）。
 function matchesSafePrefix(source, safePrefixes, extractor) {
-  if (extractor?.kind === 'html-template' && /^[A-Za-z_$][\w$]*=Re\("/.test(source)) {
+  if (extractor?.kind === 'html-template' && /^[A-Za-z_$][\w$]*=[A-Za-z_$][\w$]*\("/.test(source)) {
     return true;
   }
-  if (extractor?.kind === 'platform-ternary' && /^(label|description):Mr\?/.test(source)) {
+  if (extractor?.kind === 'platform-ternary' && /^(label|description):[A-Za-z_$][\w$]*\?/.test(source)) {
     return true;
   }
-  if (extractor?.kind === 'jsx-title' && source.startsWith('z(gX,{title:')) {
+  if (extractor?.kind === 'jsx-title' && /^[A-Za-z_$][\w$]*\([A-Za-z_$][\w$]*,\{title:/.test(source)) {
     return true;
   }
-  if (extractor?.kind === 'section-title' && source.startsWith('Jf,{title:')) {
+  if (extractor?.kind === 'section-title' && /^[A-Za-z_$][\w$]{0,5},\{title:/.test(source)) {
     return true;
   }
   if (extractor?.kind === 'function-switch' && source.startsWith('function ')) {
     return true;
   }
-  if (extractor?.kind === 'memo-arrow' && /=me\(\(\)=>\{/.test(source)) {
+  if (extractor?.kind === 'memo-arrow' && /=\w+\(\(\)=>\{/.test(source)) {
     return true;
   }
   if (extractor?.kind === 'arrow-switch' && /=>\{switch/.test(source)) {
@@ -186,7 +188,7 @@ function matchesSafePrefix(source, safePrefixes, extractor) {
   if (extractor?.kind === 'array-literal' && /=\[\{id:/.test(source)) {
     return true;
   }
-  if (extractor?.kind === 'nav-map' && source.startsWith('anh={')) {
+  if (extractor?.kind === 'nav-map' && /^[A-Za-z_$][\w$]*=\{general:"/.test(source)) {
     return true;
   }
   if (extractor?.kind === 'mode-object' && /^var [A-Za-z_$][\w$]*=\{id:/.test(source)) {
@@ -319,9 +321,6 @@ function isInSettingsScope(source, index, length, config) {
   const window = source.slice(start, end);
   const patterns = compilePatterns(config.settingsScopePatterns || [
     'cursor-settings',
-    'z\\(Wu,',
-    'z\\(gX,',
-    'z\\(Jf,',
     'settings-sidebar',
     'settings-search'
   ]);
@@ -342,6 +341,7 @@ function suggestPatchId({ kind, key, innerText, contextTags }) {
 
 function createExtractorPatterns(uiKeys) {
   const keyPattern = uiKeys.join('|');
+  const quoted = '("(?:[^"\\\\]|\\\\.)*")';
   return [
     {
       kind: 'ui-key',
@@ -351,17 +351,13 @@ function createExtractorPatterns(uiKeys) {
     {
       kind: 'getter',
       id: 'getter-return',
-      regex: /get (description|title|fallback|label)\(\)\{return(`(?:[^`\\]|\\.|\\$\\{(?:[^{}]|\\{[^{}]*\\})*\\})*`|"(?:[^"\\]|\\.)*")\}/g
+      regex: /get (description|title|fallback|label)\(\)\{return(`(?:[^`\\]|\\.|\\$\{(?:[^{}]|\{[^{}]*\})*\})*`|"(?:[^"\\]|\\.)*")\}/g
     },
     {
+      // Hyperscript 模板：X=Y("<div>…</div>")，Y 为压缩后的模板函数名，靠内容含 HTML 标签兜底校验
       kind: 'html-template',
       id: 're-template',
-      regex: /([A-Za-z_$][\w$]*)=Re\("((?:[^"\\]|\\.)*)"\)/g
-    },
-    {
-      kind: 'html-template',
-      id: 'ot-template',
-      regex: /([A-Za-z_$][\w$]*)=ot\("((?:[^"\\]|\\.)*)"\)/g
+      regex: /([A-Za-z_$][\w$]*)=[A-Za-z_$][\w$]{0,5}\("((?:[^"\\]|\\.)*<[^"\\]+)"\)/g
     },
     {
       kind: 'return-literal',
@@ -369,19 +365,22 @@ function createExtractorPatterns(uiKeys) {
       regex: /return"((?:[^"\\]|\\.)*)"/g
     },
     {
+      // JSX 结构：X(Y,{title:"…"})，X/Y 均为压缩符号，形态本身（组件调用 + title prop）已足够特异
       kind: 'jsx-title',
       id: 'jsx-title',
-      regex: /z\(gX,\{title:("(?:[^"\\]|\\.)*")/g
+      regex: new RegExp(`[A-Za-z_$][\\w$]*\\([A-Za-z_$][\\w$]*,\\{title:${quoted}`, 'g')
     },
     {
+      // 分区标题：X,{title:"…"}（X 为组件标识符，长度限制在压缩符号范围内）
       kind: 'section-title',
       id: 'jf-title',
-      regex: /Jf,\{title:("(?:[^"\\]|\\.)*")/g
+      regex: new RegExp(`[A-Za-z_$][\\w$]{0,5},\\{title:${quoted}`, 'g')
     },
     {
+      // 平台三元：label:Z?"⌘K":"Ctrl K"，Z 为平台布尔变量（压缩符号）
       kind: 'platform-ternary',
       id: 'mr-ternary',
-      regex: /(label|description):Mr\?("(?:[^"\\]|\\.)*"):("(?:[^"\\]|\\.)*")/g
+      regex: new RegExp(`(label|description):[A-Za-z_$][\\w$]{0,5}\\?${quoted}:${quoted}`, 'g')
     }
   ];
 }
@@ -557,9 +556,7 @@ function extractCandidates({
         const literal = match[1];
         const decoded = decodeQuotedLiteral(literal);
         if (decoded === null) continue;
-        source = extractor.kind === 'jsx-title'
-          ? `z(gX,{title:${literal}`
-          : `Jf,{title:${literal}`;
+        source = match[0];
         innerText = normalizeText(decoded);
         index = match.index;
       } else if (extractor.kind === 'platform-ternary') {
@@ -615,33 +612,42 @@ function escapeMarkdownCell(value) {
   return value.replace(/\|/g, '\\|').replace(/`/g, '\\`');
 }
 
-async function writeMarkdownReport({ appDir, workbenchPath, candidates, options }) {
+async function writeMarkdownReport({ appDir, bundles, options }) {
   const lines = [
     '# workbench 补丁 source 候选表',
     '',
     `- Cursor 应用目录：\`${appDir}\``,
-    `- 扫描文件：\`${workbenchPath}\``,
+    `- 扫描 bundle：${bundles.map((bundle) => bundle.file).join('、')}`,
     `- 范围：\`${options.scope}\``,
     `- 最低置信度：\`${options.minConfidence}\``,
-    `- 候选条数：${candidates.length}`,
-  '',
+    `- 候选条数合计：${bundles.reduce((sum, bundle) => sum + bundle.candidates.length, 0)}`,
+    '',
     '## 状态说明',
     '',
     '- `missing`：workbench 中仍存在英文 source，但补丁表未收录',
     '- `covered-unapplied`：补丁表已有 source，但当前 workbench 仍是英文（未应用或版本不匹配）',
     '- `covered-applied`：补丁已应用（仅在使用 `--include-applied` 时出现）',
     '- `covered-stale`：补丁表有记录，但当前 workbench 中 source/target 都未命中（可能已换版）',
-    '',
-    '## 候选列表',
-    '',
-    '| 状态 | 置信度 | 类型 | 唯一 | 次数 | innerText | source 前缀 |',
-    '| --- | --- | --- | --- | ---: | --- | --- |',
-    ...candidates.slice(0, 600).map((item) => {
-      return `| ${item.status} | ${item.confidence} | ${item.kind} | ${item.uniqueInFile ? 'yes' : 'no'} | ${item.sourceHits} | \`${escapeMarkdownCell(item.innerText)}\` | \`${escapeMarkdownCell(item.safePrefix)}\` |`;
-    }),
-    '',
-    '完整 JSON（含完整 `source` 字段）见 `reports/workbench-patch-source-candidates.json`。'
+    ''
   ];
+
+  for (const bundle of bundles) {
+    const candidates = bundle.candidates;
+    lines.push(
+      `## ${bundle.label}（${bundle.file}）`,
+      '',
+      `- 候选条数：${candidates.length}`,
+      '',
+      '| 状态 | 置信度 | 类型 | 唯一 | 次数 | innerText | source 前缀 |',
+      '| --- | --- | --- | --- | ---: | --- | --- |',
+      ...candidates.slice(0, 600).map((item) => {
+        return `| ${item.status} | ${item.confidence} | ${item.kind} | ${item.uniqueInFile ? 'yes' : 'no'} | ${item.sourceHits} | \`${escapeMarkdownCell(item.innerText)}\` | \`${escapeMarkdownCell(item.safePrefix)}\` |`;
+      }),
+      ''
+    );
+  }
+
+  lines.push('完整 JSON（含完整 `source` 字段）见 `reports/workbench-patch-source-candidates.json`。');
 
   await fs.writeFile(path.join(reportsDir, 'workbench-patch-source-candidates.md'), `${lines.join('\n')}\n`, 'utf8');
 }
@@ -653,30 +659,43 @@ async function main() {
     return;
   }
 
-  const { appDir, workbenchPath } = await resolveWorkbenchPath(options.cursorRoot);
-  const [config, patches, policy, workbenchSource] = await Promise.all([
+  const { appDir, targets } = await resolveWorkbenchTargets(options.cursorRoot);
+  const [config, patches, policy] = await Promise.all([
     readJson(configPath),
     readJson(patchesPath),
-    readJson(policyPath),
-    fs.readFile(workbenchPath, 'utf8')
+    readJson(policyPath)
   ]);
 
-  const candidates = extractCandidates({
-    workbenchSource,
-    config,
-    policy,
-    patches,
-    options
-  });
+  const bundles = [];
+  for (const target of targets) {
+    const workbenchSource = await fs.readFile(target.filePath, 'utf8');
+    const candidates = extractCandidates({
+      workbenchSource,
+      config,
+      policy,
+      patches,
+      options
+    });
+    bundles.push({
+      id: target.id,
+      file: target.file,
+      label: target.label,
+      workbenchPath: target.filePath,
+      candidateCount: candidates.length,
+      candidates: candidates.map((candidate) => ({ ...candidate, bundle: target.id }))
+    });
+    console.log(`[${target.label}] ${target.file}：${candidates.length} 条 source 候选`);
+  }
 
+  const allCandidates = bundles.flatMap((bundle) => bundle.candidates);
   const summary = {
-    missing: candidates.filter((item) => item.status === 'missing').length,
-    coveredUnapplied: candidates.filter((item) => item.status === 'covered-unapplied').length,
-    coveredApplied: candidates.filter((item) => item.status === 'covered-applied').length,
-    coveredStale: candidates.filter((item) => item.status === 'covered-stale').length,
-    highConfidence: candidates.filter((item) => item.confidence === 'high').length,
+    missing: allCandidates.filter((item) => item.status === 'missing').length,
+    coveredUnapplied: allCandidates.filter((item) => item.status === 'covered-unapplied').length,
+    coveredApplied: allCandidates.filter((item) => item.status === 'covered-applied').length,
+    coveredStale: allCandidates.filter((item) => item.status === 'covered-stale').length,
+    highConfidence: allCandidates.filter((item) => item.confidence === 'high').length,
     byKind: Object.fromEntries(
-      [...candidates.reduce((map, item) => {
+      [...allCandidates.reduce((map, item) => {
         map.set(item.kind, (map.get(item.kind) ?? 0) + 1);
         return map;
       }, new Map()).entries()].sort((a, b) => b[1] - a[1])
@@ -685,31 +704,31 @@ async function main() {
 
   const report = {
     appDir,
-    workbenchPath,
     scannedAt: new Date().toISOString(),
     options,
     summary,
-    candidateCount: candidates.length,
-    candidates
+    bundleCount: bundles.length,
+    candidateCount: allCandidates.length,
+    bundles
   };
 
   await writeJson(path.join(reportsDir, 'workbench-patch-source-candidates.json'), report);
-  await writeMarkdownReport({ appDir, workbenchPath, candidates, options });
+  await writeMarkdownReport({ appDir, bundles, options });
 
   if (options.staging) {
-    const staging = candidates
+    const staging = allCandidates
       .filter((item) => item.status === 'missing' || item.status === 'covered-unapplied')
       .filter((item) => item.confidence === 'high' || item.confidence === 'medium')
       .map((item) => ({
         id: item.id,
         source: item.source,
         target: item.target || '',
-        note: `auto-extracted; kind=${item.kind}; status=${item.status}; innerText=${item.innerText}`
+        note: `auto-extracted; bundle=${item.bundle}; kind=${item.kind}; status=${item.status}; innerText=${item.innerText}`
       }));
     await writeJson(path.join(projectRoot, 'data', 'workbench-patches.staging.json'), staging);
   }
 
-  console.log(`扫描完成：${candidates.length} 条 source 候选`);
+  console.log(`扫描完成：${allCandidates.length} 条 source 候选`);
   console.log(`  missing: ${summary.missing}`);
   console.log(`  covered-unapplied: ${summary.coveredUnapplied}`);
   console.log(`  high confidence: ${summary.highConfidence}`);

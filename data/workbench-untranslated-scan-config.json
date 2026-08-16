@@ -9,34 +9,21 @@
   "scopeLookaheadChars": 180,
   "settingsScopePatterns": [
     "cursor-settings",
-    "z\\(Wu,",
-    "z\\(gX,",
-    "z\\(Jf,",
     "settings-sidebar",
     "settings-search",
-    "function y5C",
-    "function aww",
+    "cursor-settings-cell",
+    "vscode-settings",
+    "plan-usage",
+    "background-composer",
+    "local-automations",
     "privacyMode",
     "granularPrivacy",
     "enable_web_fetch_tool",
     "composerState",
-    "I4C\\(\\)",
-    "l5C\\(\\)",
-    "c5C\\(\\)",
-    "h5C\\(\\)",
     "Run Mode",
-    "zR\\.ASK_EVERY_TIME",
-    "function jCk",
-    "function KCk"
+    "ASK_EVERY_TIME"
   ],
-  "settingsHtmlSymbols": [
-    "I4C",
-    "l5C",
-    "c5C",
-    "h5C",
-    "m5C",
-    "u5C"
-  ],
+  "settingsHtmlSymbols": [],
   "statusOrder": [
     "candidate",
     "tracked-needle",
@@ -131,7 +118,11 @@
     "^#[0-9a-fA-F]{3,8}$",
     "^[A-Fa-f0-9]{24,}$",
     "^[-+]?\\d+(?:\\.\\d+)?(?:px|em|rem|vh|vw|ms|s|%)?$",
-    "^[\\w.+-]+@[\\w.-]+$"
+    "^[\\w.+-]+@[\\w.-]+$",
+    "^Monaco ",
+    "\\brectangle renderer\\b",
+    "\\b(?:render pass|uniform buffer|bind group|command encoder|glyph storage|vertex buffer|fragment buffer|shader module|render pipeline|storage buffer|atlas info|scroll offset buffer|full file cell buffer)\\b",
+    "^(?:Un)?register [A-Za-z]+ Tooltip$"
   ],
   "lowConfidencePatterns": [
     "^use strict$",

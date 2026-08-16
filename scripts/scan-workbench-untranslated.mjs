@@ -1,48 +1,15 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readJson, resolveWorkbenchTargets, writeJson } from './lib/workbench-scan-shared.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDir, '..');
-const cursorRootInput = process.argv[2] || process.env.CURSOR_ROOT || 'D:\\cursor';
-const cursorRoot = path.resolve(cursorRootInput);
+const cursorRootInput = process.argv[2] || process.env.CURSOR_ROOT || '';
 const reportsDir = path.join(projectRoot, 'reports');
 const configPath = path.join(projectRoot, 'data', 'workbench-untranslated-scan-config.json');
 const patchesPath = path.join(projectRoot, 'data', 'workbench-patches.json');
 const needlesPath = path.join(projectRoot, 'data', 'workbench-hardcoded-needles.json');
-
-async function exists(filePath) {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function readJson(filePath) {
-  return JSON.parse(await fs.readFile(filePath, 'utf8'));
-}
-
-async function writeJson(filePath, value) {
-  await fs.mkdir(path.dirname(filePath), { recursive: true });
-  await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
-}
-
-async function resolveAppDir() {
-  const directWorkbench = path.join(cursorRoot, 'out', 'vs', 'workbench', 'workbench.desktop.main.js');
-  if (await exists(directWorkbench)) {
-    return cursorRoot;
-  }
-
-  const appDir = path.join(cursorRoot, 'resources', 'app');
-  const nestedWorkbench = path.join(appDir, 'out', 'vs', 'workbench', 'workbench.desktop.main.js');
-  if (await exists(nestedWorkbench)) {
-    return appDir;
-  }
-
-  throw new Error(`没有找到 workbench.desktop.main.js：${directWorkbench} 或 ${nestedWorkbench}`);
-}
 
 function compilePatterns(patterns) {
   return patterns.map((pattern) => new RegExp(pattern, 'u'));
@@ -316,63 +283,85 @@ function escapeMarkdownCell(value) {
   return value.replace(/\|/g, '\\|').replace(/`/g, '\\`');
 }
 
-async function writeMarkdownReport({ appDir, workbenchPath, candidates, config }) {
+async function writeMarkdownReport({ appDir, bundles, config }) {
   const limit = config.markdownCandidateLimit;
   const lines = [
-    '# workbench.desktop.main.js 未汉化硬编码字符串报告',
+    '# workbench 未汉化硬编码字符串报告',
     '',
     `- Cursor 应用目录：\`${appDir}\``,
-    `- 扫描文件：\`${workbenchPath}\``,
-    `- 候选字符串：${candidates.length}`,
-    `- 高置信度：${candidates.filter((item) => item.confidence === 'high').length}`,
-    `- 中置信度：${candidates.filter((item) => item.confidence === 'medium').length}`,
-    `- 低置信度：${candidates.filter((item) => item.confidence === 'low').length}`,
-    '',
-    '## 候选列表',
-    '',
-    '| 状态 | 上下文 | 置信度 | 次数 | 首次位置 | 原文 |',
-    '| --- | --- | --- | ---: | --- | --- |',
-    ...candidates.slice(0, limit).map((item) => {
-      const first = item.samples[0];
-      const contextTags = item.contextTags.length ? item.contextTags.join(', ') : '-';
-      return `| ${item.status} | ${contextTags} | ${item.confidence} | ${item.occurrences} | ${first.line}:${first.column} | \`${escapeMarkdownCell(item.text)}\` |`;
-    }),
-    '',
+    `- 扫描 bundle：${bundles.map((bundle) => bundle.file).join('、')}`,
+    `- 候选字符串合计：${bundles.reduce((sum, bundle) => sum + bundle.candidates.length, 0)}`,
+    ''
+  ];
+
+  for (const bundle of bundles) {
+    const candidates = bundle.candidates;
+    lines.push(
+      `## ${bundle.label}（${bundle.file}）`,
+      '',
+      `- 候选字符串：${candidates.length}`,
+      `- 高置信度：${candidates.filter((item) => item.confidence === 'high').length}`,
+      `- 中置信度：${candidates.filter((item) => item.confidence === 'medium').length}`,
+      `- 低置信度：${candidates.filter((item) => item.confidence === 'low').length}`,
+      '',
+      '| 状态 | 上下文 | 置信度 | 次数 | 首次位置 | 原文 |',
+      '| --- | --- | --- | ---: | --- | --- |',
+      ...candidates.slice(0, limit).map((item) => {
+        const first = item.samples[0];
+        const contextTags = item.contextTags.length ? item.contextTags.join(', ') : '-';
+        return `| ${item.status} | ${contextTags} | ${item.confidence} | ${item.occurrences} | ${first.line}:${first.column} | \`${escapeMarkdownCell(item.text)}\` |`;
+      }),
+      ''
+    );
+  }
+
+  lines.push(
     '## 产物说明',
     '',
     '- 完整候选与上下文：`reports/workbench-untranslated.json`',
-    '- Markdown 只截取排序后的前若干项；完整结果以 JSON 为准。',
+    '- Markdown 每个 bundle 只截取排序后的前若干项；完整结果以 JSON 为准。',
     '- `already-in-patch-map` 表示原文已在 `data/workbench-patches.json` 中维护。',
     '- `tracked-needle` 表示原文已在 `data/workbench-hardcoded-needles.json` 中列为重点观察词。'
-  ];
+  );
 
   await fs.writeFile(path.join(reportsDir, 'workbench-untranslated.md'), `${lines.join('\n')}\n`, 'utf8');
 }
 
 async function main() {
-  const [appDir, config, patches, needles] = await Promise.all([
-    resolveAppDir(),
+  const [{ appDir, targets }, config, patches, needles] = await Promise.all([
+    resolveWorkbenchTargets(cursorRootInput),
     readJson(configPath),
     readJson(patchesPath),
     readJson(needlesPath)
   ]);
-  const workbenchPath = path.join(appDir, 'out', 'vs', 'workbench', 'workbench.desktop.main.js');
-  const source = await fs.readFile(workbenchPath, 'utf8');
-  const literals = extractStringLiterals(source);
-  const candidates = buildCandidateReport({ source, literals, config, patches, needles });
+
+  const bundles = [];
+  for (const target of targets) {
+    const source = await fs.readFile(target.filePath, 'utf8');
+    const literals = extractStringLiterals(source);
+    const candidates = buildCandidateReport({ source, literals, config, patches, needles });
+    bundles.push({
+      id: target.id,
+      file: target.file,
+      label: target.label,
+      workbenchPath: target.filePath,
+      totalStringLiterals: literals.length,
+      candidateCount: candidates.length,
+      candidates
+    });
+    console.log(`[${target.label}] ${target.file}：字符串字面量 ${literals.length}，未汉化候选 ${candidates.length}`);
+  }
 
   await writeJson(path.join(reportsDir, 'workbench-untranslated.json'), {
     appDir,
-    workbenchPath,
     scannedAt: new Date().toISOString(),
-    totalStringLiterals: literals.length,
-    candidateCount: candidates.length,
-    candidates
+    bundleCount: bundles.length,
+    totalStringLiterals: bundles.reduce((sum, bundle) => sum + bundle.totalStringLiterals, 0),
+    candidateCount: bundles.reduce((sum, bundle) => sum + bundle.candidateCount, 0),
+    bundles
   });
-  await writeMarkdownReport({ appDir, workbenchPath, candidates, config });
+  await writeMarkdownReport({ appDir, bundles, config });
 
-  console.log(`字符串字面量：${literals.length}`);
-  console.log(`未汉化候选：${candidates.length}`);
   console.log(`JSON 报告：${path.join(reportsDir, 'workbench-untranslated.json')}`);
   console.log(`Markdown 报告：${path.join(reportsDir, 'workbench-untranslated.md')}`);
 }

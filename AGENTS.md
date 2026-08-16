@@ -62,7 +62,8 @@
 
 ## 开发环境提示
 
-- 默认扫描目录为 `D:\cursor`，可通过环境变量 `CURSOR_ROOT` 或命令行参数覆盖（例：`node ./scripts/scan-workbench-untranslated.mjs D:\cursor`）。
+- 扫描脚本自动探测 Cursor 安装目录（顺序：`C:\Program Files\Cursor` → 用户级 `%LOCALAPPDATA%\Programs\Cursor` → 其他盘 `X:\Program Files\Cursor` → 旧默认 `D:\cursor`），可通过环境变量 `CURSOR_ROOT` 或命令行参数覆盖（例：`node ./scripts/scan-workbench-untranslated.mjs D:\cursor`）。
+- 扫描覆盖全部三个 workbench bundle：`workbench.desktop.main.js`（主界面）、`workbench.glass.main.js`（Agents 窗口）、`workbench.anysphere-ui-automations.js`（Automations 面板，存在才扫）。提取锚点只使用语义稳定特征（UI 键名、DOM class、路由名），**不要写入压缩符号锚点**（如 `z\(gX,`、`=me\(`、`anh=`，它们随 Cursor 构建变化会导致漏扫）。
 - 版本以 `package.json` 为准；打包前自动执行 `version:sync` 同步到各处，**不要手动改其他文件的版本号**。
 - 生成产物（`reports/`、`data/*.staging.json`）不入库，需对照 `reports/` 报告整理补丁规则后再写入正式 `data/*.json`。
 

@@ -16,7 +16,7 @@ function validateBlock(kind, source) {
         && /return"/.test(source)
         && extractQuotedEnglishPhrases(source).length > 0;
     case 'memo-arrow':
-      return /=me\(\(\)=>\{/.test(source) && /return /.test(source);
+      return /=\w+\(\(\)=>\{/.test(source) && /return /.test(source);
     case 'arrow-switch':
       return /=>\{switch/.test(source) && /return"/.test(source);
     case 'items-array':
@@ -31,6 +31,8 @@ function validateBlock(kind, source) {
   }
 }
 
+// 块级提取锚点：只使用语义稳定的结构特征（function/items/id 等语义键名、
+// React.memo 箭头形态、导航映射的 general/chat 键），不依赖压缩符号。
 export const BLOCK_ANCHORS = [
   {
     kind: 'function-switch',
@@ -39,8 +41,9 @@ export const BLOCK_ANCHORS = [
     closeChar: '}'
   },
   {
+    // React.memo：X=me(()=>{…})，me 为压缩符号，泛化为任意短标识符
     kind: 'memo-arrow',
-    regex: /[A-Za-z_$][\w$]*=me\(\(\)=>\{/g,
+    regex: /[A-Za-z_$][\w$]*=[A-Za-z_$][\w$]{0,5}\(\(\)=>\{/g,
     openChar: '{',
     closeChar: '}'
   },
@@ -64,8 +67,10 @@ export const BLOCK_ANCHORS = [
     closeChar: ']'
   },
   {
+    // 设置页导航映射：X={general:"General",…}，原锚点 anh= 中的 anh 为压缩符号，
+    // 泛化为“对象字面量首个键为 general”，语义稳定。
     kind: 'nav-map',
-    regex: /anh=\{/g,
+    regex: /[A-Za-z_$][\w$]*=\{general:"/g,
     openChar: '{',
     closeChar: '}'
   },
