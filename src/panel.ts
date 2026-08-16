@@ -104,7 +104,18 @@ export class ManagerPanel {
     }
 
     this.lastProgressPostAt = now;
-    void this.panel.webview.postMessage({ type: 'progress', progress: this.state.progress });
+    const progress = this.state.progress;
+    void this.panel.webview.postMessage({
+      type: 'progress',
+      progress: {
+        operation: progress.operation,
+        message: progress.message,
+        percent: progress.percent,
+        current: progress.current,
+        total: progress.total
+      },
+      logs: this.logs
+    });
   }
 
   private updateState(update: Omit<Partial<ManagerState>, 'logs'>): void {
@@ -680,9 +691,7 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
       </div>
     </section>
 
-    <div id="progressMount">
-      ${renderProgressSection(state.progress)}
-    </div>
+    ${renderProgressSection(state.progress)}
 
     <section class="card card-pad gap-top">
       <div class="section-title">
@@ -764,47 +773,64 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
     });
 
     window.addEventListener('message', event => {
-      const data = event.data;
-      if (data && data.type === 'progress') {
-        renderProgressCard(data.progress);
+      const message = event.data;
+      if (!message || message.type !== 'progress') {
+        return;
+      }
+
+      const section = document.getElementById('progressSection');
+      if (!section) {
+        return;
+      }
+
+      section.hidden = false;
+
+      const operation = document.getElementById('progressOperation');
+      if (operation) {
+        operation.textContent = message.progress.operation ?? '';
+      }
+
+      const percent = document.getElementById('progressPercent');
+      if (percent) {
+        percent.textContent = message.progress.percent + '%';
+      }
+
+      const messageEl = document.getElementById('progressMessage');
+      if (messageEl) {
+        messageEl.textContent = message.progress.message ?? '';
+      }
+
+      const fill = document.getElementById('progressFill');
+      if (fill) {
+        fill.style.width = message.progress.percent + '%';
+      }
+
+      const track = document.getElementById('progressTrack');
+      if (track) {
+        track.setAttribute('aria-valuenow', String(message.progress.percent));
+      }
+
+      const count = document.getElementById('progressCount');
+      if (count) {
+        if (message.progress.current !== undefined && message.progress.total !== undefined) {
+          count.hidden = false;
+          count.textContent = '当前条数：' + message.progress.current + ' / ' + message.progress.total;
+        } else {
+          count.hidden = true;
+        }
+      }
+
+      const logBox = document.querySelector('.log.mono');
+      if (logBox && Array.isArray(message.logs)) {
+        logBox.innerHTML = message.logs.length
+          ? message.logs.map(line => {
+              const div = document.createElement('div');
+              div.textContent = line;
+              return div.innerHTML;
+            }).join('<br>')
+          : '暂无日志。执行识别、扫描、应用或恢复后，这里会显示结果摘要。';
       }
     });
-
-    function renderProgressCard(progress) {
-      const mount = document.getElementById('progressMount');
-      if (!mount) {
-        return;
-      }
-
-      if (!progress) {
-        mount.innerHTML = '';
-        return;
-      }
-
-      const count = typeof progress.current === 'number' && typeof progress.total === 'number'
-        ? '<div class="progress-count mono">当前条数：' + progress.current + ' / ' + progress.total + '</div>'
-        : '';
-      mount.innerHTML = '<section class="card progress" aria-live="polite">'
-        + '<div class="progress-head">'
-        + '<div class="progress-title">' + escapeHtml(progress.operation) + '</div>'
-        + '<div class="mono">' + progress.percent + '%</div>'
-        + '</div>'
-        + '<div class="progress-msg">' + escapeHtml(progress.message) + '</div>'
-        + '<div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + progress.percent + '">'
-        + '<div class="fill" style="width: ' + progress.percent + '%"></div>'
-        + '</div>'
-        + count
-        + '</section>';
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
   </script>
 </body>
 </html>`;
@@ -964,22 +990,22 @@ function renderProblems(problems: readonly string[]): string {
 }
 
 function renderProgressSection(progress: ManagerProgressState | undefined): string {
-  if (!progress) {
-    return '';
-  }
+  const hidden = progress ? '' : ' hidden';
+  const operation = progress?.operation ?? '';
+  const percent = progress?.percent ?? 0;
+  const message = progress?.message ?? '';
+  const count = progress && progress.current !== undefined && progress.total !== undefined
+    ? `<div class="progress-count mono" id="progressCount">当前条数：${progress.current} / ${progress.total}</div>`
+    : '<div class="progress-count mono" id="progressCount" hidden></div>';
 
-  const count = progress.current !== undefined && progress.total !== undefined
-    ? `<div class="progress-count mono">当前条数：${progress.current} / ${progress.total}</div>`
-    : '';
-
-  return `<section class="card progress gap-top" aria-live="polite">
+  return `<section class="card progress gap-top" id="progressSection" aria-live="polite"${hidden}>
     <div class="progress-head">
-      <div class="progress-title">${escapeHtml(progress.operation)}</div>
-      <div class="mono">${progress.percent}%</div>
+      <div class="progress-title" id="progressOperation">${escapeHtml(operation)}</div>
+      <div class="mono" id="progressPercent">${percent}%</div>
     </div>
-    <div class="progress-msg">${escapeHtml(progress.message)}</div>
-    <div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress.percent}">
-      <div class="fill" style="width: ${progress.percent}%"></div>
+    <div class="progress-msg" id="progressMessage">${escapeHtml(message)}</div>
+    <div class="track" id="progressTrack" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}">
+      <div class="fill" id="progressFill" style="width: ${percent}%"></div>
     </div>
     ${count}
   </section>`;
