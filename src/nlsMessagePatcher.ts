@@ -116,8 +116,8 @@ export async function applyNlsMessagePatch(root: string, context: vscode.Extensi
   }
 
   await reportProgress(progress, { message: '读取 NLS 消息表', percent: 38 });
-  const originalMessages = await readMessages(install.nlsMessagesPath);
   const originalContent = await fs.readFile(install.nlsMessagesPath, 'utf8');
+  const originalMessages = parseMessagesContent(originalContent, install.nlsMessagesPath);
   const originalHash = sha256(originalContent);
   const locations = await readLocations(install.nlsKeysPath);
   const locationIndex = indexLocations(locations);
@@ -215,8 +215,8 @@ export async function unapplyNlsMessagePatch(root: string, context: vscode.Exten
   }
 
   await reportProgress(progress, { message: '读取 NLS 消息表', percent: 40 });
-  const currentMessages = await readMessages(install.nlsMessagesPath);
   const currentContent = await fs.readFile(install.nlsMessagesPath, 'utf8');
+  const currentMessages = parseMessagesContent(currentContent, install.nlsMessagesPath);
   const locations = await readLocations(install.nlsKeysPath);
   const locationIndex = indexLocations(locations);
   const restoredMessages = [...currentMessages];
@@ -310,7 +310,7 @@ export async function restoreNlsMessageBackup(root: string, context: vscode.Exte
 
   await reportProgress(progress, { message: '读取 NLS 备份内容', percent: 78, current: 1, total: 1 });
   const backupContent = await fs.readFile(selectedBackup.path, 'utf8');
-  await readMessagesFromContent(backupContent, selectedBackup.path);
+  parseMessagesContent(backupContent, selectedBackup.path);
   await reportProgress(progress, { message: '写入 NLS 备份内容', percent: 88, current: 1, total: 1 });
   await fs.writeFile(install.nlsMessagesPath, backupContent, 'utf8');
 
@@ -343,11 +343,11 @@ async function scanInstallNlsMessages(
   progress?: ProgressCallback
 ): Promise<NlsMessagePatchScanResult> {
   await reportProgress(progress, { message: '读取 NLS keys/messages', percent: 5 });
-  const [locations, messagesContent, messages] = await Promise.all([
+  const [locations, messagesContent] = await Promise.all([
     readLocations(install.nlsKeysPath),
-    fs.readFile(install.nlsMessagesPath, 'utf8'),
-    readMessages(install.nlsMessagesPath)
+    fs.readFile(install.nlsMessagesPath, 'utf8')
   ]);
+  const messages = parseMessagesContent(messagesContent, install.nlsMessagesPath);
 
   if (locations.length !== messages.length) {
     throw new Error(`NLS keys/messages 数量不一致：keys ${locations.length} / messages ${messages.length}`);
@@ -431,8 +431,8 @@ async function readLocations(keysPath: string): Promise<NlsMessageLocation[]> {
   return locations;
 }
 
-async function readMessages(messagesPath: string): Promise<string[]> {
-  const messages = JSON.parse(await fs.readFile(messagesPath, 'utf8')) as unknown;
+function parseMessagesContent(content: string, messagesPath: string): string[] {
+  const messages = JSON.parse(content) as unknown;
   if (!Array.isArray(messages) || !messages.every(message => typeof message === 'string')) {
     throw new Error(`无效的 nls.messages.json: ${messagesPath}`);
   }
@@ -518,7 +518,7 @@ async function readNlsBackupInfo(
     }
 
     const content = await fs.readFile(filePath, 'utf8');
-    const messages = await readMessagesFromContent(content, filePath);
+    const messages = parseMessagesContent(content, filePath);
     if (locations.length !== messages.length) {
       return undefined;
     }
@@ -570,14 +570,6 @@ function getNlsMessageStatus(
     targetHits,
     matchedRules
   };
-}
-
-async function readMessagesFromContent(content: string, messagesPath: string): Promise<string[]> {
-  const messages = JSON.parse(content) as unknown;
-  if (!Array.isArray(messages) || !messages.every(message => typeof message === 'string')) {
-    throw new Error(`无效的 nls.messages.json: ${messagesPath}`);
-  }
-  return messages;
 }
 
 function getPatchBackupKind(name: string): PatchBackupKind {

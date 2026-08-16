@@ -6,7 +6,7 @@ import { CursorInstall, validateCursorRoot } from './cursorLocator';
 import { loadWorkbenchPatchData, WorkbenchPatchRule, WorkbenchPatchRuntimePolicy } from './patchMap';
 import { createScopedProgress, ProgressCallback, reportProgress, toPercent, yieldToEventLoop } from './progress';
 import { assertBraceBalanceUnchanged, measureBraceBalance } from './braceBalance';
-import { countOccurrences, replaceAllWithCount } from './stringPatchUtils';
+import { countNeedleOccurrences, replaceAllWithCount } from './stringPatchUtils';
 
 const metadataKey = 'cursorZhCn.workbenchPatchMetadata';
 const desktopBackupFilePrefix = 'workbench.desktop.main.js.cursor-zh-cn-pack.';
@@ -30,13 +30,8 @@ interface PatchTargetRecord {
   readonly backupPath: string;
 }
 
-interface RuleScanCacheEntry {
-  readonly contentHash: string;
-  readonly ruleFingerprint: string;
-  readonly statuses: readonly PatchRuleStatus[];
-}
-
-let cachedRuleScan: RuleScanCacheEntry | undefined;
+const ruleScanCacheLimit = 6;
+const ruleScanCache = new Map<string, readonly PatchRuleStatus[]>();
 
 export type PatchState = 'not-applied' | 'applied' | 'partial' | 'unknown';
 export type PatchBackupKind = 'original' | 'before-restore' | 'before-uninstall' | 'unknown';
@@ -657,8 +652,7 @@ async function scanTargetPatch(
     resolvedContent,
     rules,
     currentHash,
-    createScopedProgress(progress, 15, 75, `扫描 ${target.label} 规则`),
-    progress
+    createScopedProgress(progress, 15, 75, `扫描 ${target.label} 规则`)
   );
   const status = getPatchStatusFromRules(ruleStatuses);
   const metadata = getPatchMetadata(context);
@@ -980,43 +974,59 @@ async function getPatchRuleStatuses(
   content: string,
   rules: readonly WorkbenchPatchRule[],
   contentHash: string,
-  progress?: ProgressCallback,
-  yieldProgress?: ProgressCallback
+  progress?: ProgressCallback
 ): Promise<PatchRuleStatus[]> {
-  const ruleFingerprint = getRuleFingerprint(rules);
-  if (cachedRuleScan?.contentHash === contentHash && cachedRuleScan.ruleFingerprint === ruleFingerprint) {
+  const cacheKey = `${contentHash}|${getRuleFingerprint(rules)}`;
+  const cached = ruleScanCache.get(cacheKey);
+  if (cached) {
+    ruleScanCache.delete(cacheKey);
+    ruleScanCache.set(cacheKey, cached);
     await reportProgress(progress, {
       message: '复用补丁扫描缓存',
       percent: 100,
       current: rules.length,
       total: rules.length
     });
-    return [...cachedRuleScan.statuses];
+    return [...cached];
   }
 
-  const statuses: PatchRuleStatus[] = [];
   await reportProgress(progress, { message: '开始扫描补丁规则', percent: 0, current: 0, total: rules.length });
 
-  for (let index = 0; index < rules.length; index += 1) {
-    const rule = rules[index];
-    statuses.push({
-      id: rule.id,
-      sourceHits: countOccurrences(content, rule.source),
-      targetHits: countOccurrences(content, rule.target)
-    });
+  const needles = new Set<string>();
+  for (const rule of rules) {
+    needles.add(rule.source);
+    needles.add(rule.target);
+  }
 
-    if (shouldYieldPatchProgress(index + 1, rules.length, yieldProgress ?? progress)) {
-      await reportProgress(progress, {
-        message: `扫描补丁规则 ${index + 1}/${rules.length}`,
-        percent: toPercent(index + 1, rules.length),
-        current: index + 1,
-        total: rules.length
-      });
+  const counts = await countNeedleOccurrences(content, [...needles], {
+    onChunk: async (scanned, total) => {
+      const done = Math.round((scanned / total) * rules.length);
+      if (progress) {
+        await reportProgress(progress, {
+          message: `扫描补丁规则 ${done}/${rules.length}`,
+          percent: toPercent(scanned, total),
+          current: done,
+          total: rules.length
+        });
+      }
       await yieldToEventLoop();
+    }
+  });
+
+  const statuses = rules.map(rule => ({
+    id: rule.id,
+    sourceHits: counts.get(rule.source) ?? 0,
+    targetHits: counts.get(rule.target) ?? 0
+  }));
+
+  ruleScanCache.set(cacheKey, statuses);
+  if (ruleScanCache.size > ruleScanCacheLimit) {
+    const oldestKey = ruleScanCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      ruleScanCache.delete(oldestKey);
     }
   }
 
-  cachedRuleScan = { contentHash, ruleFingerprint, statuses };
   return statuses;
 }
 
@@ -1118,22 +1128,28 @@ async function assertRuntimePatchIsSafe(
     '补丁汇总'
   );
 
-  for (let index = 0; index < policy.guardedRuntimeNeedles.length; index += 1) {
-    const needle = policy.guardedRuntimeNeedles[index];
-    const before = countOccurrences(originalContent, needle);
-    const after = countOccurrences(patchedContent, needle);
-    if (before !== after) {
-      throw new Error(`补丁触及受保护运行时关键字 ${needle}，已取消写入。`);
-    }
+  const guardedNeedles = policy.guardedRuntimeNeedles;
+  if (guardedNeedles.length > 0) {
+    const [beforeCounts, afterCounts] = [
+      await countNeedleOccurrences(originalContent, guardedNeedles),
+      await countNeedleOccurrences(patchedContent, guardedNeedles)
+    ];
 
-    if (shouldYieldPatchProgress(index + 1, policy.guardedRuntimeNeedles.length, progress)) {
-      await reportProgress(progress, {
-        message: `校验受保护关键字 ${index + 1}/${policy.guardedRuntimeNeedles.length}`,
-        percent: 30 + toPercent(index + 1, policy.guardedRuntimeNeedles.length) * 0.7,
-        current: index + 1,
-        total: policy.guardedRuntimeNeedles.length
-      });
-      await yieldToEventLoop();
+    for (let index = 0; index < guardedNeedles.length; index += 1) {
+      const needle = guardedNeedles[index];
+      if ((beforeCounts.get(needle) ?? 0) !== (afterCounts.get(needle) ?? 0)) {
+        throw new Error(`补丁触及受保护运行时关键字 ${needle}，已取消写入。`);
+      }
+
+      if (shouldYieldPatchProgress(index + 1, guardedNeedles.length, progress)) {
+        await reportProgress(progress, {
+          message: `校验受保护关键字 ${index + 1}/${guardedNeedles.length}`,
+          percent: 30 + toPercent(index + 1, guardedNeedles.length) * 0.7,
+          current: index + 1,
+          total: guardedNeedles.length
+        });
+        await yieldToEventLoop();
+      }
     }
   }
 

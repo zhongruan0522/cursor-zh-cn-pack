@@ -30,6 +30,7 @@ export interface LocateCursorResult {
 interface Candidate {
   readonly root: string;
   readonly source: string;
+  readonly maxAncestorDepth?: number;
 }
 
 export async function locateCursorInstall(savedRoot?: string, progress?: ProgressCallback): Promise<LocateCursorResult> {
@@ -40,28 +41,28 @@ export async function locateCursorInstall(savedRoot?: string, progress?: Progres
     await reportProgress(progress, { message: '已加入保存的 Cursor 路径', percent: 5, current: candidates.length, total: candidates.length });
   }
 
-  await reportProgress(progress, { message: '检查正在运行的 Cursor 进程', percent: 10 });
-  for (const processPath of await getRunningCursorProcessPaths()) {
+  await reportProgress(progress, { message: '检查正在运行的 Cursor 进程与注册表', percent: 10 });
+  const powerShellCandidates = await gatherPowerShellCandidates();
+  for (const processPath of powerShellCandidates.processPaths) {
     candidates.push({ root: processPath, source: '正在运行的 Cursor.exe' });
   }
 
-  await reportProgress(progress, { message: '读取 PATH 中的 Cursor 候选路径', percent: 25, current: candidates.length, total: candidates.length });
+  await reportProgress(progress, { message: '读取 PATH 中的 Cursor 候选路径', percent: 35, current: candidates.length, total: candidates.length });
   for (const pathCandidate of getPathCandidates()) {
     candidates.push(pathCandidate);
   }
   await yieldToEventLoop();
 
-  await reportProgress(progress, { message: '读取注册表中的 Cursor 候选路径', percent: 40, current: candidates.length, total: candidates.length });
-  for (const registryCandidate of await getRegistryCandidates()) {
+  for (const registryCandidate of powerShellCandidates.registryCandidates) {
     candidates.push(registryCandidate);
   }
 
-  await reportProgress(progress, { message: '加入常见安装路径', percent: 55, current: candidates.length, total: candidates.length });
+  await reportProgress(progress, { message: '加入常见安装路径', percent: 45, current: candidates.length, total: candidates.length });
   for (const commonPath of getCommonInstallPaths()) {
-    candidates.push({ root: commonPath, source: '常见安装路径' });
+    candidates.push({ root: commonPath, source: '常见安装路径', maxAncestorDepth: 0 });
   }
 
-  const validated = await validateCandidates(candidates, createScopedProgress(progress, 60, 98, '校验候选路径'));
+  const validated = await validateCandidates(candidates, createScopedProgress(progress, 50, 98, '校验候选路径'));
   await reportProgress(progress, {
     message: `识别完成，已检查 ${validated.length} 个候选路径`,
     percent: 100,
@@ -138,34 +139,42 @@ async function validateCandidates(candidates: readonly Candidate[], progress?: P
   const seen = new Set<string>();
   const validated: CursorInstall[] = [];
   let processed = 0;
-  const estimatedTotal = candidates.reduce((sum, candidate) => sum + expandPossibleRoots(candidate.root).length, 0);
+  const estimatedTotal = candidates.reduce(
+    (sum, candidate) => sum + expandPossibleRoots(candidate.root, candidate.maxAncestorDepth).length,
+    0
+  );
 
   await reportProgress(progress, { message: '开始校验候选路径', percent: 0, current: 0, total: estimatedTotal });
   for (const candidate of candidates) {
-    for (const root of expandPossibleRoots(candidate.root)) {
+    for (const root of expandPossibleRoots(candidate.root, candidate.maxAncestorDepth)) {
       processed += 1;
       const key = root.toLowerCase();
       if (seen.has(key)) {
-        await reportProgress(progress, {
-          message: `跳过重复候选路径 ${processed}/${estimatedTotal}`,
-          percent: toPercent(processed, estimatedTotal),
-          current: processed,
-          total: estimatedTotal
-        });
         continue;
       }
 
       seen.add(key);
-      validated.push(await validateCursorRoot(root, candidate.source));
-      await reportProgress(progress, {
-        message: `校验候选路径 ${processed}/${estimatedTotal}`,
-        percent: toPercent(processed, estimatedTotal),
-        current: processed,
-        total: estimatedTotal
-      });
-      await yieldToEventLoop();
-      if (validated[validated.length - 1].valid) {
-        break;
+      const install = await validateCursorRoot(root, candidate.source);
+      validated.push(install);
+      if (install.valid) {
+        // 找到有效安装后立即停止，不再遍历剩余兜底候选。
+        await reportProgress(progress, {
+          message: `识别到有效安装目录: ${root}`,
+          percent: 100,
+          current: processed,
+          total: processed
+        });
+        return validated;
+      }
+
+      if (processed % 12 === 0 || processed === estimatedTotal) {
+        await reportProgress(progress, {
+          message: `校验候选路径 ${processed}/${estimatedTotal}`,
+          percent: toPercent(processed, estimatedTotal),
+          current: processed,
+          total: estimatedTotal
+        });
+        await yieldToEventLoop();
       }
     }
   }
@@ -173,7 +182,7 @@ async function validateCandidates(candidates: readonly Candidate[], progress?: P
   return validated;
 }
 
-function expandPossibleRoots(input: string): string[] {
+function expandPossibleRoots(input: string, maxAncestorDepth = 8): string[] {
   const roots: string[] = [];
   const push = (value: string) => {
     const normalized = path.resolve(stripExecutableArguments(value));
@@ -190,7 +199,7 @@ function expandPossibleRoots(input: string): string[] {
   }
 
   let current = path.resolve(stripExecutableArguments(input));
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < maxAncestorDepth; i++) {
     push(current);
     const parent = path.dirname(current);
     if (parent === current) {
@@ -207,8 +216,9 @@ function getPathCandidates(): Candidate[] {
   const candidates: Candidate[] = [];
 
   for (const directory of values) {
-    candidates.push({ root: path.join(directory, 'cursor.cmd'), source: 'PATH 中的 cursor.cmd' });
-    candidates.push({ root: path.join(directory, 'Cursor.exe'), source: 'PATH 中的 Cursor.exe' });
+    // PATH 中的启动器通常紧邻安装根目录，限制上溯层数避免生成大量无效父目录。
+    candidates.push({ root: path.join(directory, 'cursor.cmd'), source: 'PATH 中的 cursor.cmd', maxAncestorDepth: 2 });
+    candidates.push({ root: path.join(directory, 'Cursor.exe'), source: 'PATH 中的 Cursor.exe', maxAncestorDepth: 2 });
   }
 
   return candidates;
@@ -227,23 +237,51 @@ function getCommonInstallPaths(): string[] {
   return paths.filter((value): value is string => Boolean(value));
 }
 
-async function getRunningCursorProcessPaths(): Promise<string[]> {
+const powerShellProcessMarker = '===CURSOR-ZH-CN-PROCESSES===';
+const powerShellRegistryMarker = '===CURSOR-ZH-CN-REGISTRY===';
+
+/**
+ * 一次 PowerShell 调用同时获取运行中的 Cursor.exe 路径与注册表卸载项，
+ * 避免两次进程冷启动（每次约 1-3 秒）。
+ */
+async function gatherPowerShellCandidates(): Promise<{ processPaths: string[]; registryCandidates: Candidate[] }> {
   if (process.platform !== 'win32') {
-    return [];
+    return { processPaths: [], registryCandidates: [] };
   }
 
-  const command = "Get-CimInstance Win32_Process -Filter \"name = 'Cursor.exe'\" | Select-Object -ExpandProperty ExecutablePath | Sort-Object -Unique";
-  return await runPowerShellLines(command, 4000);
-}
+  const command = [
+    `'${powerShellProcessMarker}';`,
+    "Get-CimInstance Win32_Process -Filter \"name = 'Cursor.exe'\" | Select-Object -ExpandProperty ExecutablePath | Sort-Object -Unique;",
+    `'${powerShellRegistryMarker}';`,
+    "$keys = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*';",
+    "Get-ItemProperty $keys -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like '*Cursor*' } | ForEach-Object { $_.InstallLocation; $_.DisplayIcon; $_.UninstallString }"
+  ].join(' ');
 
-async function getRegistryCandidates(): Promise<Candidate[]> {
-  if (process.platform !== 'win32') {
-    return [];
+  const lines = await runPowerShellLines(command, 6000);
+  const processPaths: string[] = [];
+  const registryLines: string[] = [];
+  let section: 'processes' | 'registry' = 'processes';
+
+  for (const line of lines) {
+    if (line === powerShellProcessMarker) {
+      section = 'processes';
+      continue;
+    }
+    if (line === powerShellRegistryMarker) {
+      section = 'registry';
+      continue;
+    }
+    if (section === 'processes') {
+      processPaths.push(line);
+    } else {
+      registryLines.push(line);
+    }
   }
 
-  const command = "$keys = 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*'; Get-ItemProperty $keys -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like '*Cursor*' } | ForEach-Object { $_.InstallLocation; $_.DisplayIcon; $_.UninstallString }";
-  const lines = await runPowerShellLines(command, 5000);
-  return lines.map(root => ({ root, source: '注册表卸载项' }));
+  return {
+    processPaths,
+    registryCandidates: registryLines.map(root => ({ root, source: '注册表卸载项' }))
+  };
 }
 
 async function runPowerShellLines(command: string, timeout: number): Promise<string[]> {

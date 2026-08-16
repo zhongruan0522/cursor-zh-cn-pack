@@ -32,6 +32,7 @@ export class ManagerPanel {
   private readonly logs: string[] = [];
   private state: ManagerState = { logs: this.logs };
   private disposed = false;
+  private lastProgressPostAt = 0;
 
   private constructor(
     private readonly panel: vscode.WebviewPanel,
@@ -73,23 +74,37 @@ export class ManagerPanel {
 
     const startedAt = new Date().toISOString();
     const progress: ProgressCallback = update => {
-      this.updateState({
-        progress: {
-          ...update,
-          operation,
-          startedAt
-        }
-      });
-      this.render();
+      // 进度只增量推送给 webview，避免每次进度都全量重建 HTML。
+      this.state = {
+        ...this.state,
+        progress: { ...update, operation, startedAt },
+        logs: this.logs
+      };
+      this.postProgressUpdate();
     };
 
     try {
-      await reportProgress(progress, { message: '准备开始', percent: 0 });
+      this.updateState({ progress: { operation, startedAt, message: '准备开始', percent: 0 } });
+      this.render();
       return await task(progress);
     } finally {
       this.updateState({ progress: undefined });
       this.render();
     }
+  }
+
+  private postProgressUpdate(): void {
+    if (this.disposed || !this.state.progress) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - this.lastProgressPostAt < 60) {
+      return;
+    }
+
+    this.lastProgressPostAt = now;
+    void this.panel.webview.postMessage({ type: 'progress', progress: this.state.progress });
   }
 
   private updateState(update: Omit<Partial<ManagerState>, 'logs'>): void {
@@ -665,7 +680,9 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
       </div>
     </section>
 
-    ${renderProgressSection(state.progress)}
+    <div id="progressMount">
+      ${renderProgressSection(state.progress)}
+    </div>
 
     <section class="card card-pad gap-top">
       <div class="section-title">
@@ -745,6 +762,49 @@ function getHtml(webview: vscode.Webview, state: ManagerState): string {
         });
       });
     });
+
+    window.addEventListener('message', event => {
+      const data = event.data;
+      if (data && data.type === 'progress') {
+        renderProgressCard(data.progress);
+      }
+    });
+
+    function renderProgressCard(progress) {
+      const mount = document.getElementById('progressMount');
+      if (!mount) {
+        return;
+      }
+
+      if (!progress) {
+        mount.innerHTML = '';
+        return;
+      }
+
+      const count = typeof progress.current === 'number' && typeof progress.total === 'number'
+        ? '<div class="progress-count mono">当前条数：' + progress.current + ' / ' + progress.total + '</div>'
+        : '';
+      mount.innerHTML = '<section class="card progress" aria-live="polite">'
+        + '<div class="progress-head">'
+        + '<div class="progress-title">' + escapeHtml(progress.operation) + '</div>'
+        + '<div class="mono">' + progress.percent + '%</div>'
+        + '</div>'
+        + '<div class="progress-msg">' + escapeHtml(progress.message) + '</div>'
+        + '<div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + progress.percent + '">'
+        + '<div class="fill" style="width: ' + progress.percent + '%"></div>'
+        + '</div>'
+        + count
+        + '</section>';
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
   </script>
 </body>
 </html>`;
