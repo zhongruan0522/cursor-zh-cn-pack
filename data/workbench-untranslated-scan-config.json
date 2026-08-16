@@ -37,7 +37,8 @@
   "contextTagOrder": [
     "cursor-settings",
     "settings-dom",
-    "settings-route"
+    "settings-route",
+    "glass-ui"
   ],
   "patchSourceKeys": [
     "label",
@@ -67,7 +68,13 @@
     "beta",
     "network",
     "worktrees",
-    "developer"
+    "developer",
+    "section",
+    "automation",
+    "protection",
+    "protectionDescription",
+    "showLocalhostLinks",
+    "openWebLinks"
   ],
   "contextTags": [
     {
@@ -103,6 +110,14 @@
         "local-automations",
         "background-composer",
         "worktrees"
+      ]
+    },
+    {
+      "id": "glass-ui",
+      "label": "Agents 窗口",
+      "patterns": [
+        "\"glass\\.",
+        "workbench\\.glass"
       ]
     }
   ],

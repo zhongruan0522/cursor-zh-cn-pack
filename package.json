@@ -2,7 +2,7 @@
   "name": "cursor-zh-cn-pack",
   "displayName": "Cursor 简体中文语言包",
   "description": "为 Cursor 专用扩展和私有界面提供简体中文补充翻译；VS Code 基础翻译由官方中文语言包处理。",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "publisher": "zhongruan",
   "license": "MIT",
   "repository": {
@@ -59,7 +59,7 @@
         "cursorZhCn.enableWorkbenchPatch": {
           "type": "boolean",
           "default": true,
-          "description": "是否允许汉化管理器修改 Cursor 的 workbench.desktop.main.js 以补丁式汉化硬编码界面。"
+          "description": "是否允许汉化管理器修改 Cursor 的 desktop、Agents Window 和 Automations Workbench bundle，以补丁式汉化硬编码界面。"
         }
       }
     }
@@ -72,6 +72,8 @@
     "extract": "node ./scripts/extract-cursor-nls.mjs",
     "scan:workbench": "node ./scripts/scan-workbench-untranslated.mjs",
     "scan:patch-sources": "node ./scripts/extract-workbench-patch-sources.mjs",
+    "scan:nls": "node ./scripts/scan-nls-untranslated.mjs",
+    "test:scan": "node ./scripts/test-tokenizer.mjs",
     "package": "npm run version:sync && vsce package",
     "release:build": "npm run version:sync && npm run compile && node ./scripts/build-release-assets.mjs",
     "build": "npm run version:sync && npm run extract && npm run compile"

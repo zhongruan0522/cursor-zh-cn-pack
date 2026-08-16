@@ -9,6 +9,7 @@ import {
   contextTagsFor,
   countOccurrences,
   decodeJsString,
+  extractStringLiterals,
   hasCjkText,
   hasEnglishText,
   lineColumnAt,
@@ -116,6 +117,9 @@ function printHelp() {
   - UI 键名：label/title/description/children 等
   - 块级结构：function switch、memo-arrow、items 数组、导航映射 anh={}、模式对象 var O4r={}
   - HTML 模板：Re()/ot()、Mr 三元表达式、页面标题
+  - glass i18n 默认文案：T("glass.xxx.key","English")
+  - 设置页分区对象：{section:"Browser",...}
+  - 独立完整句：全文唯一出现的带引号长句（var X="Long sentence..." 形态）
 
 选项:
   --scope=settings|all     默认 settings，仅保留设置页相关上下文
@@ -149,7 +153,8 @@ function confidenceFor({ kind, innerText, highConfidencePatterns, lowConfidenceP
   }
   if (kind === 'ui-key' || kind === 'getter' || kind === 'html-template' || kind === 'platform-ternary'
     || kind === 'function-switch' || kind === 'memo-arrow' || kind === 'arrow-switch'
-    || kind === 'items-array' || kind === 'array-literal' || kind === 'nav-map' || kind === 'mode-object') {
+    || kind === 'items-array' || kind === 'array-literal' || kind === 'nav-map' || kind === 'mode-object'
+    || kind === 'var-object-section' || kind === 'i18n-glass-default' || kind === 'standalone-sentence') {
     return 'high';
   }
   if (highConfidencePatterns.some((pattern) => pattern.test(innerText))) {
@@ -192,6 +197,17 @@ function matchesSafePrefix(source, safePrefixes, extractor) {
     return true;
   }
   if (extractor?.kind === 'mode-object' && /^var [A-Za-z_$][\w$]*=\{id:/.test(source)) {
+    return true;
+  }
+  if (extractor?.kind === 'var-object-section' && source.startsWith('{section:"')) {
+    return true;
+  }
+  // glass i18n 默认文案：T("glass.xxx.key","English")，"glass.*" 键语义稳定且全局唯一
+  if (extractor?.kind === 'i18n-glass-default' && /^"glass\.[a-zA-Z0-9_.]+","/.test(source)) {
+    return true;
+  }
+  // 独立完整句：≥24 字符、含空格、全文唯一出现的带引号句子，英文本身足够独特，等同自带上下文
+  if (extractor?.kind === 'standalone-sentence' && /^"[^"\n]{24,}"$/.test(source)) {
     return true;
   }
   return safePrefixes.some((prefix) => source.startsWith(prefix));
@@ -381,6 +397,13 @@ function createExtractorPatterns(uiKeys) {
       kind: 'platform-ternary',
       id: 'mr-ternary',
       regex: new RegExp(`(label|description):[A-Za-z_$][\\w$]{0,5}\\?${quoted}:${quoted}`, 'g')
+    },
+    {
+      // glass 内置 i18n：T("glass.xxx.key","English default")。运行时该 helper 对字符串键直接返回默认值，
+      // 翻译默认文案是唯一汉化途径。"glass.*" 键语义稳定且全局唯一，是理想锚点（helper 符号不进 source）。
+      kind: 'i18n-glass-default',
+      id: 'i18n-glass-default',
+      regex: /[A-Za-z_$][\w$]{0,5}\(("glass\.[a-zA-Z0-9_.]+"),\s*("(?:[^"\\]|\\.)*")\)/g
     }
   ];
 }
@@ -448,7 +471,12 @@ function extractCandidates({
       'items-array',
       'array-literal',
       'nav-map',
-      'mode-object'
+      'mode-object',
+      // 这三类提取器的产物本身就是语义确认的 UI 文案（分区对象/glass i18n 键/唯一完整句），
+      // 无需依赖 settings 上下文特征即可入 scope。
+      'var-object-section',
+      'i18n-glass-default',
+      'standalone-sentence'
     ]);
     const inSettingsScope = contextTags.some((tag) => contextTagOrder.includes(tag))
       || isInSettingsScope(workbenchSource, index, source.length, config)
@@ -469,17 +497,6 @@ function extractCandidates({
     });
     if (confidenceRank(confidence) > confidenceRank(options.minConfidence)) return;
 
-    const classification = classifyCandidate({
-      source,
-      sourceToRule,
-      targetSet,
-      workbenchSource
-    });
-
-    if (!options.includeApplied && (classification.status === 'covered-applied' || classification.status === 'covered-stale')) {
-      return;
-    }
-
     const safePrefix = longestMatchingPrefix(source, safePrefixes);
     const patchRule = sourceToRule.get(source);
     addCandidate({
@@ -490,12 +507,14 @@ function extractCandidates({
       kind,
       key: key || undefined,
       confidence,
-      status: classification.status,
-      patchId: classification.patchId,
-      sourceHits: classification.sourceHits,
-      targetHits: classification.targetHits,
+      // status/sourceHits/targetHits 在去重剪枝后统一分类填充：
+      // 逐候选全文计数是 O(候选数×文件大小)，放到剪枝后只剩少量唯一候选时再做。
+      status: 'unclassified',
+      patchId: undefined,
+      sourceHits: 0,
+      targetHits: 0,
       safePrefix,
-      uniqueInFile: classification.sourceHits === 1,
+      uniqueInFile: false,
       contextTags,
       occurrences: 1,
       samples: [{
@@ -567,6 +586,14 @@ function extractCandidates({
         if (macText === null || otherText === null) continue;
         innerText = normalizeText(`${macText} / ${otherText}`);
         index = match.index;
+      } else if (extractor.kind === 'i18n-glass-default') {
+        // match[1]="glass.xxx.key"、match[2]="English"；source 只含两个参数，不含 helper 压缩符号
+        key = 'glass-i18n';
+        source = `${match[1]},${match[2]}`;
+        const decoded = decodeQuotedLiteral(match[2]);
+        if (decoded === null) continue;
+        innerText = normalizeText(decoded);
+        index = (match.index ?? 0) + match[0].indexOf('"glass.');
       }
 
       if (!innerText || innerText.length > config.maxLength) continue;
@@ -597,9 +624,68 @@ function extractCandidates({
     });
   }
 
-  const statusOrder = ['missing', 'covered-unapplied', 'covered-stale', 'covered-applied'];
+  // 独立完整句通道：使用词法感知 tokenizer 的结果，凡是“≥24 字符、含空格、以大写开头、
+  // 全文唯一出现”的双引号句子，直接以整个带引号字面量作为 source。
+  // 这覆盖了 var X="Long sentence…" 模块级常量赋值等无法被键名/块锚点捕获的形态
+  // （如 glass 的 "Automate repetitive tasks with always-on agents…"）。
+  // 唯一性校验保证整句替换不会误伤其他位置。
+  const { literals: standaloneLiterals } = extractStringLiterals(workbenchSource);
+  // 预统计每个字面量原文的出现次数（词法器提取的字面量即源码中全部带引号出现位置），
+  // 替代逐条 countOccurrences 全文扫描（后者为 O(候选数 × 文件大小)，46MB bundle 上不可行）。
+  const literalOccurrenceCounts = new Map();
+  for (const literal of standaloneLiterals) {
+    literalOccurrenceCounts.set(literal.literal, (literalOccurrenceCounts.get(literal.literal) ?? 0) + 1);
+  }
+  const seenStandaloneSources = new Set();
+  for (const literal of standaloneLiterals) {
+    if (literal.literal.length < 26 || literal.literal.length > config.maxLength + 2) continue;
+    if (!literal.literal.startsWith('"') || !literal.literal.endsWith('"')) continue;
+    const text = normalizeText(literal.value);
+    if (text.length < 24 || !text.includes(' ')) continue;
+    if (!/^[A-Z]/.test(text)) continue;
+    if (!hasEnglishText(text) || hasCjkText(text)) continue;
+    if (excludePatterns.some((pattern) => pattern.test(text))) continue;
+    if (lowConfidencePatterns.some((pattern) => pattern.test(text))) continue;
+    // 唯一性：带引号的完整字面量在全文中只出现一次
+    if ((literalOccurrenceCounts.get(literal.literal) ?? 0) !== 1) continue;
+    if (seenStandaloneSources.has(literal.literal)) continue;
+    seenStandaloneSources.add(literal.literal);
+
+    processRawCandidate({
+      source: literal.literal,
+      innerText: text,
+      kind: 'standalone-sentence',
+      key: 'sentence',
+      index: literal.index,
+      extractor: { kind: 'standalone-sentence' }
+    });
+  }
+
   const pruned = pruneSubsumedCandidates([...bySource.values()]);
-  return pruned.sort((a, b) => {
+  const classified = pruned
+    .map((candidate) => {
+      const classification = classifyCandidate({
+        source: candidate.source,
+        sourceToRule,
+        targetSet,
+        workbenchSource
+      });
+      return {
+        ...candidate,
+        status: classification.status,
+        patchId: classification.patchId,
+        sourceHits: classification.sourceHits,
+        targetHits: classification.targetHits,
+        uniqueInFile: classification.sourceHits === 1
+      };
+    })
+    .filter((candidate) => {
+      if (options.includeApplied) return true;
+      return candidate.status !== 'covered-applied' && candidate.status !== 'covered-stale';
+    });
+
+  const statusOrder = ['missing', 'covered-unapplied', 'covered-stale', 'covered-applied'];
+  return classified.sort((a, b) => {
     return statusOrder.indexOf(a.status) - statusOrder.indexOf(b.status)
       || confidenceRank(a.confidence) - confidenceRank(b.confidence)
       || (a.uniqueInFile === b.uniqueInFile ? 0 : a.uniqueInFile ? -1 : 1)

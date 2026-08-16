@@ -1,6 +1,6 @@
 import {
   extractQuotedEnglishPhrases,
-  findBalancedEnd,
+  findBalancedEndSmart,
   hasEnglishText
 } from './workbench-scan-shared.mjs';
 
@@ -26,6 +26,9 @@ function validateBlock(kind, source) {
       return /general:"/.test(source) || /chat:"/.test(source) || /appearance:"/.test(source);
     case 'mode-object':
       return /label:"/.test(source) && /(?:placeholder|description):"/.test(source);
+    case 'var-object-section':
+      // 设置页分区对象：X={section:"Browser",automation:"Browser Automation",…}
+      return /section:"/.test(source) && extractQuotedEnglishPhrases(source).length > 0;
     default:
       return true;
   }
@@ -79,6 +82,14 @@ export const BLOCK_ANCHORS = [
     regex: /var [A-Za-z_$][\w$]*=\{id:/g,
     openChar: '{',
     closeChar: '}'
+  },
+  {
+    // 设置页分区文案对象：X={section:"Browser",automation:"Browser Automation",…}，
+    // desktop 与 glass 两个 bundle 中该对象内部文本一致，一条规则可同时命中两侧。
+    kind: 'var-object-section',
+    regex: /(?:var )?[A-Za-z_$][\w$]*=\{section:"/g,
+    openChar: '{',
+    closeChar: '}'
   }
 ];
 
@@ -88,7 +99,15 @@ export function extractBlockCandidates(workbenchSource, anchors = BLOCK_ANCHORS)
   for (const anchor of anchors) {
     for (const match of workbenchSource.matchAll(anchor.regex)) {
       const openIndex = openCharIndex(match, anchor.openChar);
-      const closeIndex = findBalancedEnd(
+      if (anchor.kind === 'function-switch') {
+        // Most minified functions are unrelated helpers. Avoid balancing all
+        // of them; a switch-return UI mapper normally exposes both markers
+        // near its function start, while the full block remains the source.
+        const probe = workbenchSource.slice(openIndex, openIndex + 4000);
+        if (!/switch\s*\(/.test(probe) || !/return"/.test(probe)) continue;
+      }
+
+      const closeIndex = findBalancedEndSmart(
         workbenchSource,
         openIndex,
         anchor.openChar,
@@ -128,6 +147,9 @@ function extractBlockKey(kind, source) {
   if (kind === 'nav-map') {
     return 'anh';
   }
+  if (kind === 'var-object-section') {
+    return source.match(/section:"([^"]*)"/)?.[1];
+  }
   if (kind === 'items-array') {
     return 'items';
   }
@@ -136,17 +158,62 @@ function extractBlockKey(kind, source) {
 
 export function pruneSubsumedCandidates(candidates) {
   const sorted = [...candidates].sort((a, b) => b.source.length - a.source.length);
-  const kept = [];
+  const sources = sorted.map((candidate) => candidate.source);
+  const subsumedSources = new Set();
 
-  for (const candidate of sorted) {
-    const subsumed = kept.some((other) => {
-      if (other.source === candidate.source) return false;
-      return other.source.includes(candidate.source);
-    });
-    if (!subsumed) {
-      kept.push(candidate);
+  // Candidate blocks can be thousands of characters long. Indexing a short
+  // prefix narrows containment checks from every pair to only sources that
+  // could actually contain the candidate, while preserving exact includes()
+  // semantics for the final decision.
+  const indexes = [8, 4, 2, 1].map((gramLength) => buildSubstringIndex(sources, gramLength));
+
+  for (let candidateIndex = 0; candidateIndex < sources.length; candidateIndex += 1) {
+    const candidateSource = sources[candidateIndex];
+    const gramLength = candidateSource.length >= 8
+      ? 8
+      : candidateSource.length >= 4
+        ? 4
+        : candidateSource.length >= 2
+          ? 2
+          : 1;
+    const possibleContainerIndexes = indexes[[8, 4, 2, 1].indexOf(gramLength)].get(candidateSource.slice(0, gramLength)) ?? [];
+
+    for (const containerIndex of possibleContainerIndexes) {
+      if (containerIndex === candidateIndex || sources[containerIndex].length <= candidateSource.length) {
+        continue;
+      }
+
+      if (sources[containerIndex].includes(candidateSource)) {
+        subsumedSources.add(candidateSource);
+        break;
+      }
     }
   }
 
-  return kept;
+  return sorted.filter((candidate) => !subsumedSources.has(candidate.source));
+}
+
+function buildSubstringIndex(sources, gramLength) {
+  const index = new Map();
+
+  for (let sourceIndex = 0; sourceIndex < sources.length; sourceIndex += 1) {
+    const source = sources[sourceIndex];
+    if (source.length < gramLength) continue;
+
+    const indexedGrams = new Set();
+    for (let position = 0; position <= source.length - gramLength; position += 1) {
+      indexedGrams.add(source.slice(position, position + gramLength));
+    }
+
+    for (const gram of indexedGrams) {
+      const containerIndexes = index.get(gram);
+      if (containerIndexes) {
+        containerIndexes.push(sourceIndex);
+      } else {
+        index.set(gram, [sourceIndex]);
+      }
+    }
+  }
+
+  return index;
 }

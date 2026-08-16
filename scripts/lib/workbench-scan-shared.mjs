@@ -11,7 +11,7 @@ export async function exists(filePath) {
 }
 
 // Cursor 前端 bundle 清单：desktop 为主界面，glass 为 Agents 窗口，automations 为 Automations 面板。
-// 运行时补丁器对 desktop/glass 共用同一份规则表，automations 尚未接入补丁，扫描需全部覆盖。
+// 运行时补丁器对所有存在的 bundle 共用同一份规则表，扫描也需全部覆盖。
 export const WORKBENCH_BUNDLES = [
   { id: 'desktop', file: 'workbench.desktop.main.js', label: '主界面' },
   { id: 'glass', file: 'workbench.glass.main.js', label: 'Agents 窗口' },
@@ -184,6 +184,406 @@ export function countOccurrences(source, needle) {
   return count;
 }
 
+// —— 词法感知的字符串提取（正则/注释/模板串感知版）——
+//
+// 背景：纯字符级扫描（只认引号）会被正则字面量（如 /["']/）里的引号打乱引号配对，
+// 一旦失步，后续数十 KB 的代码会被误认成“一个巨大字符串”，大片 UI 文案对扫描器不可见。
+// 实测 Cursor 3.15.19：desktop/glass/automations 分别有 64%/57%/56% 的内容被吞进 5KB+ 的假字符串，
+// "Browser Automation"、"Automate repetitive tasks…" 等文案因此从未出现在扫描报告中。
+//
+// 这里实现一个轻量 JS 词法器：识别字符串/模板串（含 ${} 嵌套）/行注释/块注释/正则字面量。
+// 正则与除法的判定采用“前一显著 token”启发式：标点/关键字后是正则，标识符/数字/右括号后是除法；
+// 右括号通过括号栈区分控制流括号（if(x)/re/）与普通分组括号（(a+b)/2）。
+
+const IDENT_START_PATTERN = /[A-Za-z_$]/;
+const IDENT_PART_PATTERN = /[A-Za-z0-9_$]/;
+
+// 这些关键字之后跟的一定是“值位置”，因此 `/` 应解释为正则字面量的开头。
+const REGEX_ALLOWED_KEYWORDS = new Set([
+  'return', 'typeof', 'instanceof', 'in', 'of', 'new', 'delete', 'void', 'throw',
+  'case', 'do', 'else', 'yield', 'await', 'if', 'while', 'for', 'with', 'switch',
+  'catch', 'try', 'finally', 'default', 'export', 'import', 'const', 'let', 'var',
+  'function', 'class', 'extends', 'static', 'get', 'set', 'async', 'break',
+  'continue', 'debugger'
+]);
+
+// 这些括号前的关键字意味着括号是控制流条件，右括号后允许出现正则（如 if(x)/re/.test(s)）。
+const CONTROL_PAREN_KEYWORDS = new Set(['if', 'while', 'for', 'with', 'catch']);
+
+function isWhitespace(char) {
+  return char === ' ' || char === '\n' || char === '\r' || char === '\t' || char === '\f' || char === '\v';
+}
+
+function createLexerState() {
+  return {
+    // 当前 `/` 是否可能开启正则字面量。
+    regexAllowed: true,
+    // 最近一个单词 token（用于关键字判定），属性访问（a.foo）后的单词不算关键字。
+    lastWord: '',
+    // 最近一个显著字符（'w'=单词、'n'=数字、'q'=字符串、其他为标点本身）。
+    lastSignificantChar: ''
+  };
+}
+
+// 尝试从 source[start]（应为 '/'）扫描正则字面量，返回结束后标或 -1（判定为除法/误判）。
+// 正则不跨行；字符类 [...] 内的 '/' 不终结正则；反斜杠转义成对跳过。
+function tryScanRegexLiteral(source, start) {
+  let inCharacterClass = false;
+  for (let index = start + 1; index < source.length; index += 1) {
+    const char = source[index];
+    if (char === '\\') {
+      index += 1;
+      continue;
+    }
+    if (char === '\n') {
+      return -1;
+    }
+    if (inCharacterClass) {
+      if (char === ']') inCharacterClass = false;
+      continue;
+    }
+    if (char === '[') {
+      inCharacterClass = true;
+      continue;
+    }
+    if (char === '/') {
+      let end = index + 1;
+      while (end < source.length && source[end] >= 'a' && source[end] <= 'z') {
+        end += 1;
+      }
+      return end;
+    }
+  }
+  return -1;
+}
+
+// 扫描从 source[start]（应为引号）开始的字符串字面量，返回结束后的索引。
+// 普通字符串回调 sink.onString；模板串遇到 ${} 时递归进入 scanCodeRegion，
+// 含插值的模板串整体不回调（与旧实现一致：插值文本不是稳定的替换目标）。
+function scanStringLiteral(source, start, state, sink) {
+  const quote = source[start];
+  let raw = '';
+  let hasTemplateExpression = false;
+
+  for (let index = start + 1; index < source.length; index += 1) {
+    const char = source[index];
+    if (char === '\\') {
+      raw += source.slice(index, index + 2);
+      index += 1;
+      continue;
+    }
+    if (quote === '`' && char === '$' && source[index + 1] === '{') {
+      hasTemplateExpression = true;
+      // 模板表达式内部是普通 JS 代码：'{' 处于值位置，允许出现正则字面量。
+      state.regexAllowed = true;
+      state.lastWord = '';
+      state.lastSignificantChar = '{';
+      const expressionEnd = scanCodeRegion(source, index + 2, state, sink, '}');
+      if (expressionEnd >= source.length) {
+        return source.length;
+      }
+      index = expressionEnd; // 循环自增后跳过 '}'
+      continue;
+    }
+    if (char === quote) {
+      if (!hasTemplateExpression) {
+        sink.onString(raw, source.slice(start, index + 1), start, quote);
+      }
+      state.regexAllowed = false;
+      state.lastWord = '';
+      state.lastSignificantChar = 'q';
+      return index + 1;
+    }
+    raw += char;
+  }
+
+  state.regexAllowed = false;
+  return source.length;
+}
+
+// 扫描代码区域：从 from 开始，直到 stopChar（仅 '}'，用于模板表达式收尾）在 0 层出现或到达末尾。
+// 返回停止位置（指向 stopChar）或 source.length。所有字符串/注释/正则都会被正确跳过。
+function scanCodeRegion(source, from, state, sink, stopChar) {
+  const parenStack = [];
+  let braceDepth = 0;
+  let index = from;
+
+  while (index < source.length) {
+    const char = source[index];
+
+    if (isWhitespace(char)) {
+      index += 1;
+      continue;
+    }
+
+    // 行注释与块注释
+    if (char === '/' && source[index + 1] === '/') {
+      const newlineIndex = source.indexOf('\n', index + 2);
+      index = newlineIndex === -1 ? source.length : newlineIndex + 1;
+      sink.onComment();
+      continue;
+    }
+    if (char === '/' && source[index + 1] === '*') {
+      const closeIndex = source.indexOf('*/', index + 2);
+      index = closeIndex === -1 ? source.length : closeIndex + 2;
+      sink.onComment();
+      continue;
+    }
+
+    if (char === '\'' || char === '"' || char === '`') {
+      index = scanStringLiteral(source, index, state, sink);
+      continue;
+    }
+
+    // 标识符与关键字
+    if (IDENT_START_PATTERN.test(char)) {
+      let end = index + 1;
+      while (end < source.length && IDENT_PART_PATTERN.test(source[end])) {
+        end += 1;
+      }
+      const word = source.slice(index, end);
+      const isPropertyAccess = state.lastSignificantChar === '.';
+      state.lastWord = isPropertyAccess ? '' : word;
+      state.regexAllowed = !isPropertyAccess && REGEX_ALLOWED_KEYWORDS.has(word);
+      state.lastSignificantChar = 'w';
+      index = end;
+      continue;
+    }
+
+    // 数字（含 0x1f、1e9 等粗粒度形态；数字后一定是除法）
+    if (char >= '0' && char <= '9') {
+      let end = index + 1;
+      while (end < source.length && IDENT_PART_PATTERN.test(source[end])) {
+        end += 1;
+      }
+      state.regexAllowed = false;
+      state.lastWord = '';
+      state.lastSignificantChar = 'n';
+      index = end;
+      continue;
+    }
+
+    if (char === '/') {
+      if (state.regexAllowed) {
+        const regexEnd = tryScanRegexLiteral(source, index);
+        if (regexEnd !== -1) {
+          sink.onRegex();
+          state.regexAllowed = false;
+          state.lastWord = '';
+          state.lastSignificantChar = '/';
+          index = regexEnd;
+          continue;
+        }
+      }
+      // 除法（或 /=）：运算符是标点，其后回到“值位置”
+      state.regexAllowed = true;
+      state.lastWord = '';
+      state.lastSignificantChar = '/';
+      index += 1;
+      continue;
+    }
+
+    if (char === '(') {
+      parenStack.push(CONTROL_PAREN_KEYWORDS.has(state.lastWord));
+      state.regexAllowed = true;
+      state.lastWord = '';
+      state.lastSignificantChar = '(';
+      index += 1;
+      continue;
+    }
+    if (char === ')') {
+      const wasControlParen = parenStack.length > 0 ? parenStack.pop() : false;
+      state.regexAllowed = wasControlParen;
+      state.lastWord = '';
+      state.lastSignificantChar = ')';
+      index += 1;
+      continue;
+    }
+    if (char === '[') {
+      state.regexAllowed = true;
+      state.lastWord = '';
+      state.lastSignificantChar = '[';
+      index += 1;
+      continue;
+    }
+    if (char === ']') {
+      state.regexAllowed = false;
+      state.lastWord = '';
+      state.lastSignificantChar = ']';
+      index += 1;
+      continue;
+    }
+    if (char === '{') {
+      braceDepth += 1;
+      state.regexAllowed = true;
+      state.lastWord = '';
+      state.lastSignificantChar = '{';
+      index += 1;
+      continue;
+    }
+    if (char === '}') {
+      if (stopChar === '}') {
+        braceDepth -= 1;
+        if (braceDepth < 0) {
+          return index;
+        }
+      }
+      state.regexAllowed = true;
+      state.lastWord = '';
+      state.lastSignificantChar = '}';
+      index += 1;
+      continue;
+    }
+
+    // 其余一律按标点处理（= , ; : ? ! & | % * + - < > ~ ^ . 等）：其后是值位置，允许正则。
+    state.regexAllowed = true;
+    state.lastWord = '';
+    state.lastSignificantChar = char;
+    index += 1;
+  }
+
+  return source.length;
+}
+
+// 词法感知版字符串提取：返回 { literals: [{ value, literal, index }], stats }。
+// stats.suspect* 统计超长（>5KB）“字符串”——正常 bundle 里几乎没有，
+// 数量暴涨说明词法判定又被新的代码形态打乱（desync 预警指标）。
+export function extractStringLiterals(source) {
+  const state = createLexerState();
+  const literals = [];
+  const stats = {
+    stringLiteralCount: 0,
+    regexLiteralCount: 0,
+    commentCount: 0,
+    suspectCount: 0,
+    suspectBytes: 0
+  };
+  const sink = {
+    onString(raw, literal, index) {
+      try {
+        const value = decodeJsString(raw);
+        literals.push({ value, literal, index });
+        stats.stringLiteralCount += 1;
+        if (literal.length > 5000) {
+          stats.suspectCount += 1;
+          stats.suspectBytes += literal.length;
+        }
+      } catch {
+        // Ignore non-JSON-compatible JavaScript escape sequences.
+      }
+    },
+    onRegex() {
+      stats.regexLiteralCount += 1;
+    },
+    onComment() {
+      stats.commentCount += 1;
+    }
+  };
+
+  scanCodeRegion(source, 0, state, sink, null);
+  return { literals, stats };
+}
+
+// 词法感知版括号配平（旧版不识别正则/注释，块级提取会在失步区失效）。
+// 语义与旧版一致：只统计 openChar/closeChar 的配对，其余括号类型忽略。
+export function findBalancedEndSmart(source, startIndex, openChar = '{', closeChar = '}') {
+  const state = createLexerState();
+  const noopSink = { onString() {}, onRegex() {}, onComment() {} };
+  let depth = 0;
+  let index = startIndex;
+
+  while (index < source.length) {
+    const char = source[index];
+
+    if (isWhitespace(char)) {
+      index += 1;
+      continue;
+    }
+    if (char === '/' && source[index + 1] === '/') {
+      const newlineIndex = source.indexOf('\n', index + 2);
+      index = newlineIndex === -1 ? source.length : newlineIndex + 1;
+      continue;
+    }
+    if (char === '/' && source[index + 1] === '*') {
+      const closeIndex = source.indexOf('*/', index + 2);
+      index = closeIndex === -1 ? source.length : closeIndex + 2;
+      continue;
+    }
+    if (char === '\'' || char === '"' || char === '`') {
+      index = scanStringLiteral(source, index, state, noopSink);
+      continue;
+    }
+    if (char === '/') {
+      if (state.regexAllowed) {
+        const regexEnd = tryScanRegexLiteral(source, index);
+        if (regexEnd !== -1) {
+          index = regexEnd;
+          state.regexAllowed = false;
+          state.lastWord = '';
+          state.lastSignificantChar = '/';
+          continue;
+        }
+      }
+      state.regexAllowed = true;
+      state.lastWord = '';
+      state.lastSignificantChar = '/';
+      index += 1;
+      continue;
+    }
+
+    // 维护词法状态（单词/数字/括号），保证后续正则判定正确
+    if (IDENT_START_PATTERN.test(char)) {
+      let end = index + 1;
+      while (end < source.length && IDENT_PART_PATTERN.test(source[end])) {
+        end += 1;
+      }
+      const word = source.slice(index, end);
+      const isPropertyAccess = state.lastSignificantChar === '.';
+      state.lastWord = isPropertyAccess ? '' : word;
+      state.regexAllowed = !isPropertyAccess && REGEX_ALLOWED_KEYWORDS.has(word);
+      state.lastSignificantChar = 'w';
+      index = end;
+      continue;
+    }
+    if (char >= '0' && char <= '9') {
+      let end = index + 1;
+      while (end < source.length && IDENT_PART_PATTERN.test(source[end])) {
+        end += 1;
+      }
+      state.regexAllowed = false;
+      state.lastWord = '';
+      state.lastSignificantChar = 'n';
+      index = end;
+      continue;
+    }
+    if (char === '(' || char === '[' || char === '{') {
+      state.regexAllowed = true;
+      state.lastWord = '';
+      state.lastSignificantChar = char;
+    } else if (char === ')' || char === ']') {
+      state.regexAllowed = false;
+      state.lastWord = '';
+      state.lastSignificantChar = char;
+    } else {
+      state.regexAllowed = true;
+      state.lastWord = '';
+      state.lastSignificantChar = char;
+    }
+
+    if (char === openChar) {
+      depth += 1;
+    } else if (char === closeChar) {
+      depth -= 1;
+      if (depth === 0) {
+        return index;
+      }
+    }
+    index += 1;
+  }
+
+  return -1;
+}
+
 function isQuote(char) {
   return char === '\'' || char === '"' || char === '`';
 }
@@ -254,6 +654,9 @@ export function extractQuotedEnglishPhrases(code) {
   const patterns = [
     /return"((?:[^"\\]|\\.)*)"/g,
     /return'((?:[^'\\]|\\.)*)'/g,
+    // 任意“键:"带引号英文值”形态（label/title/description/section/automation/protection/…）。
+    // 通用模式让新出现的 UI 键名（如 Browser 设置块的 showLocalhostLinks/openWebLinks）也能被摘要。
+    /[A-Za-z_$][\w$]*:"((?:[^"\\]|\\.)*)"/g,
     /label:"((?:[^"\\]|\\.)*)"/g,
     /title:"((?:[^"\\]|\\.)*)"/g,
     /description:"((?:[^"\\]|\\.)*)"/g,

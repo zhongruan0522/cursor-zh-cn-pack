@@ -11,9 +11,10 @@ import { countNeedleOccurrences, MultiReplacement, replaceAllMulti, replaceAllWi
 const metadataKey = 'cursorZhCn.workbenchPatchMetadata';
 const desktopBackupFilePrefix = 'workbench.desktop.main.js.cursor-zh-cn-pack.';
 const glassBackupFilePrefix = 'workbench.glass.main.js.cursor-zh-cn-pack.';
-const backupFilePrefixes = [desktopBackupFilePrefix, glassBackupFilePrefix] as const;
+const automationsBackupFilePrefix = 'workbench.anysphere-ui-automations.js.cursor-zh-cn-pack.';
+const backupFilePrefixes = [desktopBackupFilePrefix, glassBackupFilePrefix, automationsBackupFilePrefix] as const;
 
-type WorkbenchPatchTargetId = 'desktop' | 'glass';
+type WorkbenchPatchTargetId = 'desktop' | 'glass' | 'automations';
 
 interface WorkbenchPatchTarget {
   readonly id: WorkbenchPatchTargetId;
@@ -613,6 +614,16 @@ function resolveWorkbenchPatchTargets(install: CursorInstall): readonly Workbenc
     });
   }
 
+  if (install.automationsWorkbenchPath) {
+    targets.push({
+      id: 'automations',
+      filePath: install.automationsWorkbenchPath,
+      backupFilePrefix: automationsBackupFilePrefix,
+      label: 'workbench.anysphere-ui-automations.js',
+      friendlyName: 'Automations 面板'
+    });
+  }
+
   return targets;
 }
 
@@ -621,6 +632,10 @@ function formatPatchFilePaths(targets: readonly WorkbenchPatchTarget[]): string 
 }
 
 function getPatchTargetFromBackupName(name: string, install: CursorInstall): WorkbenchPatchTarget | undefined {
+  if (name.startsWith(automationsBackupFilePrefix)) {
+    return resolveWorkbenchPatchTargets(install).find(target => target.id === 'automations');
+  }
+
   if (name.startsWith(glassBackupFilePrefix)) {
     return resolveWorkbenchPatchTargets(install).find(target => target.id === 'glass');
   }

@@ -8,5 +8,17 @@
   "Open in Chat",
   "Apply",
   "Accept",
-  "Reject"
+  "Reject",
+  "Browser Automation",
+  "Browser Protection",
+  "Open Local Links in Cursor Browser",
+  "Open Web Links in Cursor Browser",
+  "New Chat",
+  "Repositories",
+  "New Terminal",
+  "Automate repetitive tasks",
+  "No Automations Yet",
+  "All Automations",
+  "No automations found",
+  "Add Trigger"
 ]

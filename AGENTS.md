@@ -4,12 +4,13 @@
 
 ## 项目概览
 
-本仓库是一个 VS Code/Cursor 扩展，为 Cursor 提供**补充**简体中文翻译，分四层处理：
+本仓库是一个 VS Code/Cursor 扩展，为 Cursor 提供**补充**简体中文翻译，分五层处理：
 
 1. **扩展 NLS** — 通过标准 Language Pack 机制加载 `translations/extensions/anysphere.cursor-*.i18n.json`（不改安装目录）。
 2. **Workbench 硬编码补丁** — 对 `workbench.desktop.main.js` 中未走标准 NLS 的硬编码文案做上下文匹配替换。
 3. **Agents Window 补丁** — 对 `workbench.glass.main.js`（若存在）做同样处理。
-4. **NLS 消息表补丁** — 对 `nls.messages.json` 中少量私有文案做替换。
+4. **Automations 面板补丁** — 对 `workbench.anysphere-ui-automations.js`（若存在）做同样处理。
+5. **NLS 消息表补丁** — 对 `nls.messages.json` 中标准和 Cursor 私有文案做定位替换。
 
 补丁逻辑代码在 `src/`，可写补丁数据在 `data/`，提取/扫描脚本在 `scripts/`。
 
@@ -21,7 +22,8 @@
 |------|------|
 | 主 Workbench | `out/vs/workbench/workbench.desktop.main.js` |
 | Agents Window | `out/vs/workbench/workbench.glass.main.js`（存在则自动补丁，较旧版本跳过） |
-| NLS 消息表 | `out/nls.messages.json`（依赖 `out/nls.keys.json` 索引） |
+| Automations 面板 | `out/vs/workbench/workbench.anysphere-ui-automations.js`（存在则自动补丁） |
+| NLS 消息表 | `out/nls.messages.json`（依赖 `out/nls.keys.json` 索引；同一 module/key 的重复位置会全部处理） |
 
 有效 Cursor 根目录需包含：
 
@@ -37,14 +39,15 @@
 补丁针对 Cursor 私有界面中**未走标准 NLS** 的硬编码文案（设置页 General/Models/Indexing/Network/Beta、Composer/Agent 菜单、Agents Window 菜单栏与侧栏、完整性提示改写等）。
 
 - 修改前计算目标文件 SHA-256；首次应用在同目录生成带版本与时间戳的备份。
-- desktop 与 glass **各自独立备份**（前缀分别为 `workbench.desktop.main.js.cursor-zh-cn-pack.*` 与 `workbench.glass.main.js.cursor-zh-cn-pack.*`）。
+- desktop、glass 与 Automations **各自独立备份**（分别使用对应 bundle 文件名前缀的 `cursor-zh-cn-pack.*` 备份）。
 - 规则按**模块上下文前缀**匹配（如 `label:`、`settings.*` 块），**不做裸词全局替换**。
 - 加载时校验每条规则 `source` / `target` **括号结构一致**，避免破坏 bundle 语法。
 - 应用前校验命中数、变更行数与受保护运行时关键字（见 `data/workbench-patch-runtime-policy.json`：安全前缀、命中上限、受保护关键字）。
+- NLS 卸载优先对照原始备份，只还原备份中确实由英文 source 变为 target 的位置，避免误还原原本已有的官方中文译文。
 - 汉化后会触发 Cursor 完整性校验；扩展替换相关提示文案，并在可能时抑制误导性的 “installation corrupt” 弹窗。
 - desktop 与 glass 压缩符号不同（如菜单栏 `ka`/`B` 与 desktop 的 `Vl`/`P`），部分 UI 需分别维护规则。
 
-当前规则规模（随版本迭代）：Workbench 补丁规则约 **900** 条，NLS 消息表规则约 **17** 条。
+当前规则规模（随 Cursor 版本迭代）：Workbench 三 bundle 补丁规则 **1030** 条，NLS 消息表规则 **11772** 条。
 
 > Cursor 升级后 bundle 可能被覆盖或压缩符号变化，需重新扫描并应用补丁。若状态为 **未知** 或 **部分应用**，先确认版本与路径，勿盲目重复写入。
 

@@ -226,7 +226,22 @@ function isRuntimeSafePatchRule(rule: WorkbenchPatchRule, _policy: WorkbenchPatc
   }
 
   return getRuntimeRuleIdPrefixMatcher()(rule.id)
-    && getSafeSourcePrefixMatcher()(rule.source);
+    && (matchesSafeSourceStructure(rule.source) || getSafeSourcePrefixMatcher()(rule.source));
+}
+
+// 结构性安全形态：与 scripts/extract-workbench-patch-sources.mjs 的 matchesSafePrefix 保持一致。
+// 这些 source 形态由语义稳定的结构特征构成（不含压缩符号），允许绕过逐条前缀白名单：
+// - "glass.<key>","<text>"：Agents 窗口内置 i18n 默认文案，键全局唯一；
+// - {section:"..."：设置页分区文案对象；
+// - "<完整英文句子>"：≥24 字符的独立带引号长句（提取时已做全文唯一性校验）。
+const SAFE_SOURCE_STRUCTURAL_PATTERNS: readonly RegExp[] = [
+  /^"glass\.[a-zA-Z0-9_.]+","/,
+  /^\{section:"/,
+  /^"[^"\n]{24,}"$/
+];
+
+function matchesSafeSourceStructure(source: string): boolean {
+  return SAFE_SOURCE_STRUCTURAL_PATTERNS.some(pattern => pattern.test(source));
 }
 
 function getSafeSourcePrefixMatcher(): (source: string) => boolean {

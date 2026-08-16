@@ -124,11 +124,19 @@ export async function applyNlsMessagePatch(root: string, context: vscode.Extensi
 
   for (let index = 0; index < rules.length; index += 1) {
     const rule = rules[index];
-    const messageIndex = locationIndex.get(locationKey(rule));
-    if (messageIndex !== undefined && patchedMessages[messageIndex] === rule.source) {
+    const messageIndexes = locationIndex.get(locationKey(rule)) ?? [];
+    let appliedForRule = false;
+    for (const messageIndex of messageIndexes) {
+      if (patchedMessages[messageIndex] !== rule.source) {
+        continue;
+      }
+
       patchedMessages[messageIndex] = rule.target;
-      appliedRuleIds.push(rule.id);
       appliedOccurrences += 1;
+      appliedForRule = true;
+    }
+    if (appliedForRule) {
+      appliedRuleIds.push(rule.id);
     }
 
     if ((index + 1) % 10 === 0 || index + 1 === rules.length) {
@@ -205,14 +213,40 @@ export async function unapplyNlsMessagePatch(root: string, context: vscode.Exten
   const currentMessages = parseMessagesContent(currentContent, install.nlsMessagesPath);
   const locations = await readLocations(install.nlsKeysPath);
   const locationIndex = indexLocations(locations);
+  const originalBackupPath = await getOriginalNlsBackupPath(before, context, install);
+  const originalMessages = originalBackupPath
+    ? await readOriginalNlsMessages(originalBackupPath, currentMessages.length)
+    : undefined;
+  if (!originalMessages) {
+    await reportProgress(progress, { message: '没有可安全还原的原始 NLS 备份', percent: 100 });
+    return {
+      changed: false,
+      unappliedRuleIds: [],
+      before,
+      after: before
+    };
+  }
+
   const restoredMessages = [...currentMessages];
   const unappliedRuleIds: string[] = [];
+  const metadata = getNlsMessagePatchMetadata(context);
+  const appliedRuleIds = metadata ? new Set(metadata.appliedRuleIds) : undefined;
 
   for (let index = 0; index < rules.length; index += 1) {
     const rule = rules[index];
-    const messageIndex = locationIndex.get(locationKey(rule));
-    if (messageIndex !== undefined && restoredMessages[messageIndex] === rule.target) {
+    const messageIndexes = locationIndex.get(locationKey(rule)) ?? [];
+    let unappliedForRule = false;
+    for (const messageIndex of messageIndexes) {
+      if (restoredMessages[messageIndex] !== rule.target
+        || originalMessages[messageIndex] !== rule.source
+        || (appliedRuleIds && !appliedRuleIds.has(rule.id))) {
+        continue;
+      }
+
       restoredMessages[messageIndex] = rule.source;
+      unappliedForRule = true;
+    }
+    if (unappliedForRule) {
       unappliedRuleIds.push(rule.id);
     }
 
@@ -241,7 +275,6 @@ export async function unapplyNlsMessagePatch(root: string, context: vscode.Exten
   await fs.writeFile(safetyBackupPath, currentContent, 'utf8');
   await fs.writeFile(install.nlsMessagesPath, restoredContent, 'utf8');
 
-  const metadata = getNlsMessagePatchMetadata(context);
   if (metadata) {
     await context.globalState.update(metadataKey, {
       ...metadata,
@@ -259,6 +292,32 @@ export async function unapplyNlsMessagePatch(root: string, context: vscode.Exten
     before,
     after
   };
+}
+
+async function getOriginalNlsBackupPath(
+  before: NlsMessagePatchScanResult,
+  context: vscode.ExtensionContext,
+  install: CursorInstall
+): Promise<string | undefined> {
+  const metadata = getNlsMessagePatchMetadata(context);
+  const metadataBackupPath = metadata?.backupPath;
+  if (metadataBackupPath
+    && samePath(path.dirname(metadataBackupPath), path.dirname(install.nlsMessagesPath))
+    && await fileExists(metadataBackupPath)) {
+    return metadataBackupPath;
+  }
+
+  return before.backups.find(backup => backup.isOriginal)?.path;
+}
+
+async function readOriginalNlsMessages(backupPath: string, expectedLength: number): Promise<readonly string[] | undefined> {
+  try {
+    const content = await fs.readFile(backupPath, 'utf8');
+    const messages = parseMessagesContent(content, backupPath);
+    return messages.length === expectedLength ? messages : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function restoreNlsMessageBackup(root: string, context: vscode.ExtensionContext, backupPath?: string, progress?: ProgressCallback): Promise<NlsMessagePatchRestoreResult> {
@@ -338,16 +397,22 @@ async function scanInstallNlsMessages(
 
   for (let index = 0; index < rules.length; index += 1) {
     const rule = rules[index];
-    const messageIndex = locationIndex.get(locationKey(rule));
-    if (messageIndex === undefined) {
+    const messageIndexes = locationIndex.get(locationKey(rule)) ?? [];
+    if (messageIndexes.length === 0) {
       missingRuleIds.push(rule.id);
       statuses.push({ id: rule.id, sourceHits: 0, targetHits: 0 });
     } else {
-      const message = messages[messageIndex];
+      let sourceHits = 0;
+      let targetHits = 0;
+      for (const messageIndex of messageIndexes) {
+        const message = messages[messageIndex];
+        if (message === rule.source) sourceHits += 1;
+        if (message === rule.target) targetHits += 1;
+      }
       statuses.push({
         id: rule.id,
-        sourceHits: message === rule.source ? 1 : 0,
-        targetHits: message === rule.target ? 1 : 0
+        sourceHits,
+        targetHits
       });
     }
 
@@ -416,8 +481,17 @@ function parseMessagesContent(content: string, messagesPath: string): string[] {
   return messages;
 }
 
-function indexLocations(locations: readonly NlsMessageLocation[]): Map<string, number> {
-  return new Map(locations.map(location => [locationKey(location), location.index]));
+function indexLocations(locations: readonly NlsMessageLocation[]): Map<string, readonly number[]> {
+  const index = new Map<string, number[]>();
+  for (const location of locations) {
+    const messageIndexes = index.get(locationKey(location));
+    if (messageIndexes) {
+      messageIndexes.push(location.index);
+    } else {
+      index.set(locationKey(location), [location.index]);
+    }
+  }
+  return index;
 }
 
 function locationKey(value: Pick<NlsMessageLocation, 'module' | 'key'>): string {
@@ -528,10 +602,14 @@ function getNlsMessageStatus(
   let matchedRules = 0;
 
   for (const rule of rules) {
-    const messageIndex = locationIndex.get(locationKey(rule));
-    const message = messageIndex === undefined ? undefined : messages[messageIndex];
-    const sourceHit = message === rule.source ? 1 : 0;
-    const targetHit = message === rule.target ? 1 : 0;
+    const messageIndexes = locationIndex.get(locationKey(rule)) ?? [];
+    let sourceHit = 0;
+    let targetHit = 0;
+    for (const messageIndex of messageIndexes) {
+      const message = messages[messageIndex];
+      if (message === rule.source) sourceHit += 1;
+      if (message === rule.target) targetHit += 1;
+    }
     sourceHits += sourceHit;
     targetHits += targetHit;
     if (sourceHit > 0 || targetHit > 0) {

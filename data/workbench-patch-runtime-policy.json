@@ -705,7 +705,17 @@
     "U=[{id:CR,label:\"All\"},{id:tJ,la",
     "var Zio={id:\"multitask\",label:\"M",
     "xyh=[{id:\"last-used\",label:\"Last",
-    "Ytl=[{id:\"plan\",label:\"Plan\",ico"
+    "Ytl=[{id:\"plan\",label:\"Plan\",ico",
+    "{section:\"",
+    "\"glass.",
+    "size:\"md\",children:\"",
+    "emptyTitle:\"No Automations Yet\",",
+    "ie(\"Repositories\",\"repos\"),",
+    "\"Drop here to attach...\":",
+    "LABEL=\"New Chat\"",
+    "name||\"New Chat\"",
+    "collectionLabel:\"Repositories\"",
+    "collectionLabel:\"Workspaces\""
   ],
   "guardedRuntimeNeedles": [
     "globalStorage",

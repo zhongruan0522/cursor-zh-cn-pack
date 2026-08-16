@@ -10,7 +10,7 @@
 
 ```powershell
 cursor --install-extension MS-CEINTL.vscode-language-pack-zh-hans
-cursor --install-extension .\cursor-zh-cn-pack-1.2.0.vsix
+cursor --install-extension .\cursor-zh-cn-pack-<version>.vsix
 ```
 
 安装后在 Cursor 中：
@@ -26,6 +26,17 @@ cursor --install-extension .\cursor-zh-cn-pack-1.2.0.vsix
 3. **应用汉化补丁** — 写入并备份
 4. **一键重启并清理 Cursor** — 刷新已加载界面与 UI 缓存
 5. **恢复备份**（可选）— Workbench 与 NLS 备份分开恢复
+
+## 补丁范围
+
+管理器会在写入前检查 Cursor 版本、规则命中数和 bundle 结构，并为每个目标文件创建独立备份：
+
+- `workbench.desktop.main.js` — 主 IDE 界面
+- `workbench.glass.main.js` — Agents Window（存在时）
+- `workbench.anysphere-ui-automations.js` — Automations 面板（存在时）
+- `nls.messages.json` — 标准 NLS 和 Cursor 私有消息（按 `nls.keys.json` 的 module/key 定位）
+
+Cursor 升级后 bundle 可能变化。升级后请先重新扫描；如果状态显示“未知”或“部分应用”，不要盲目重复写入。
 
 ## 配置项
 

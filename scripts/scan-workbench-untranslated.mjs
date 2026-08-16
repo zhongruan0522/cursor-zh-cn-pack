@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readJson, resolveWorkbenchTargets, writeJson } from './lib/workbench-scan-shared.mjs';
+import { extractStringLiterals, readJson, resolveWorkbenchTargets, writeJson } from './lib/workbench-scan-shared.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDir, '..');
@@ -13,18 +13,6 @@ const needlesPath = path.join(projectRoot, 'data', 'workbench-hardcoded-needles.
 
 function compilePatterns(patterns) {
   return patterns.map((pattern) => new RegExp(pattern, 'u'));
-}
-
-function decodeJsString(raw) {
-  const jsonReady = raw
-    .replace(/"/g, '\\"')
-    .replace(/\\'/g, "'")
-    .replace(/\\`/g, '`')
-    .replace(/\\x([0-9a-fA-F]{2})/g, (_match, hex) => `\\u00${hex}`)
-    .replace(/\\0(?![0-9])/g, '\\u0000')
-    .replace(/\\\r?\n/g, '');
-
-  return JSON.parse(`"${jsonReady}"`);
 }
 
 function normalizeText(value) {
@@ -39,94 +27,6 @@ function hasCjkText(value) {
   return /[\u3400-\u9fff]/.test(value);
 }
 
-function isTemplateExpression(raw, quote) {
-  return quote === '`' && /(^|[^\\])\$\{/.test(raw);
-}
-
-function skipQuotedString(source, start, quote) {
-  for (let i = start + 1; i < source.length; i += 1) {
-    const char = source[i];
-    if (char === '\\') {
-      i += 1;
-      continue;
-    }
-    if (quote === '`' && char === '$' && source[i + 1] === '{') {
-      i = skipTemplateExpression(source, i + 2) - 1;
-      continue;
-    }
-    if (char === quote) {
-      return i + 1;
-    }
-  }
-
-  return source.length;
-}
-
-function skipTemplateExpression(source, start) {
-  let depth = 1;
-
-  for (let i = start; i < source.length; i += 1) {
-    const char = source[i];
-    if (char === '\'' || char === '"' || char === '`') {
-      i = skipQuotedString(source, i, char) - 1;
-      continue;
-    }
-    if (char === '{') {
-      depth += 1;
-      continue;
-    }
-    if (char === '}') {
-      depth -= 1;
-      if (depth === 0) {
-        return i + 1;
-      }
-    }
-  }
-
-  return source.length;
-}
-
-function extractStringLiterals(source) {
-  const literals = [];
-
-  for (let index = 0; index < source.length; index += 1) {
-    const quote = source[index];
-    if (quote !== '\'' && quote !== '"' && quote !== '`') continue;
-
-    const start = index;
-    let raw = '';
-    let hasTemplateExpression = false;
-    index += 1;
-
-    for (; index < source.length; index += 1) {
-      const char = source[index];
-      if (char === '\\') {
-        raw += source.slice(index, index + 2);
-        index += 1;
-        continue;
-      }
-      if (quote === '`' && char === '$' && source[index + 1] === '{') {
-        hasTemplateExpression = true;
-        index = skipTemplateExpression(source, index + 2) - 1;
-        continue;
-      }
-      if (char === quote) {
-        if (!(quote === '`' && hasTemplateExpression)) {
-          try {
-            const value = decodeJsString(raw);
-            literals.push({ value, literal: source.slice(start, index + 1), index: start });
-          } catch {
-            // Ignore non-JSON-compatible JavaScript escape sequences.
-          }
-        }
-        break;
-      }
-      raw += char;
-    }
-  }
-
-  return literals;
-}
 
 function buildLineStarts(source) {
   const starts = [0];
@@ -338,7 +238,7 @@ async function main() {
   const bundles = [];
   for (const target of targets) {
     const source = await fs.readFile(target.filePath, 'utf8');
-    const literals = extractStringLiterals(source);
+    const { literals, stats } = extractStringLiterals(source);
     const candidates = buildCandidateReport({ source, literals, config, patches, needles });
     bundles.push({
       id: target.id,
@@ -346,10 +246,18 @@ async function main() {
       label: target.label,
       workbenchPath: target.filePath,
       totalStringLiterals: literals.length,
+      // desync 预警：词法器把大段代码误认成超长“字符串”时的统计。
+      // 正常应接近 0；若某次 Cursor 升级后暴涨，说明出现了新的、会打乱词法判定的代码形态。
+      desync: {
+        suspectStringCount: stats.suspectCount,
+        suspectStringBytes: stats.suspectBytes,
+        regexLiteralCount: stats.regexLiteralCount,
+        commentCount: stats.commentCount
+      },
       candidateCount: candidates.length,
       candidates
     });
-    console.log(`[${target.label}] ${target.file}：字符串字面量 ${literals.length}，未汉化候选 ${candidates.length}`);
+    console.log(`[${target.label}] ${target.file}：字符串字面量 ${literals.length}，未汉化候选 ${candidates.length}，疑似失步超长串 ${stats.suspectCount} 个`);
   }
 
   await writeJson(path.join(reportsDir, 'workbench-untranslated.json'), {
@@ -357,6 +265,7 @@ async function main() {
     scannedAt: new Date().toISOString(),
     bundleCount: bundles.length,
     totalStringLiterals: bundles.reduce((sum, bundle) => sum + bundle.totalStringLiterals, 0),
+    desyncSuspects: bundles.reduce((sum, bundle) => sum + bundle.desync.suspectStringCount, 0),
     candidateCount: bundles.reduce((sum, bundle) => sum + bundle.candidateCount, 0),
     bundles
   });

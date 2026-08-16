@@ -12,6 +12,7 @@ export interface CursorInstallPaths {
   readonly nlsMessagesPath: string;
   readonly workbenchPath: string;
   readonly glassWorkbenchPath: string;
+  readonly automationsWorkbenchPath: string;
 }
 
 export interface CursorInstall extends CursorInstallPaths {
@@ -131,7 +132,8 @@ export function getCursorPaths(root: string): CursorInstallPaths {
     nlsKeysPath: path.join(appRoot, 'out', 'nls.keys.json'),
     nlsMessagesPath: path.join(appRoot, 'out', 'nls.messages.json'),
     workbenchPath: path.join(appRoot, 'out', 'vs', 'workbench', 'workbench.desktop.main.js'),
-    glassWorkbenchPath: path.join(appRoot, 'out', 'vs', 'workbench', 'workbench.glass.main.js')
+    glassWorkbenchPath: path.join(appRoot, 'out', 'vs', 'workbench', 'workbench.glass.main.js'),
+    automationsWorkbenchPath: path.join(appRoot, 'out', 'vs', 'workbench', 'workbench.anysphere-ui-automations.js')
   };
 }
 
