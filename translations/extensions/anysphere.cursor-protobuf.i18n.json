@@ -1,0 +1,13 @@
+{
+  "": [
+    "Generated for Cursor-specific resources by cursor-zh-cn-pack.",
+    "VS Code base translations are delegated to MS-CEINTL.vscode-language-pack-zh-hans."
+  ],
+  "version": "1.0.0",
+  "contents": {
+    "package": {
+      "displayName": "Cursor 协议缓冲区",
+      "description": "在 Cursor 中提供 Protocol Buffers 语法高亮和括号匹配。"
+    }
+  }
+}

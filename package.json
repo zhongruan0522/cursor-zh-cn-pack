@@ -34,6 +34,10 @@
           {
             "id": "anysphere.cursor-shadow-workspace",
             "path": "./translations/extensions/anysphere.cursor-shadow-workspace.i18n.json"
+          },
+          {
+            "id": "anysphere.cursor-protobuf",
+            "path": "./translations/extensions/anysphere.cursor-protobuf.i18n.json"
           }
         ]
       }

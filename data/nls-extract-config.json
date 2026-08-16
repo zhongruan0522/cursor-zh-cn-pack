@@ -10,6 +10,7 @@
   "preferredExtensionOrder": [
     "anysphere.cursor-always-local",
     "anysphere.cursor-retrieval",
-    "anysphere.cursor-shadow-workspace"
+    "anysphere.cursor-shadow-workspace",
+    "anysphere.cursor-protobuf"
   ]
 }
