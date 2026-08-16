@@ -12,6 +12,12 @@ permissions:
 
 jobs:
   release:
+    # 非发布格式提交（不以 v 开头）直接跳过整个 job：
+    # Actions 中显示为 skipped，不会以 success 结束，避免误触发飞书通知。
+    # 完整格式校验（版本号 + 变更列表）仍由下方 Parse 步骤兜底。
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.event.head_commit.message, 'v')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
