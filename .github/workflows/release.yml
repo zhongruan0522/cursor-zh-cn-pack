@@ -71,12 +71,15 @@ jobs:
           exit 0
 
       - name: Install dependencies
+        if: steps.release_meta.outputs.should_release == 'true'
         run: npm ci
 
       - name: Sync package-lock from package.json
+        if: steps.release_meta.outputs.should_release == 'true'
         run: npm run version:sync
 
       - name: Validate package version
+        if: steps.release_meta.outputs.should_release == 'true'
         id: validate_version
         shell: bash
         run: |
@@ -87,26 +90,6 @@ jobs:
           else
             echo "version_matched=true" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Check whether release already exists
-        if: steps.validate_version.outputs.version_matched == 'true'
-        id: release_state
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if gh release view "${{ steps.release_meta.outputs.tag }}" >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Skip duplicate release on push
-        if: github.event_name == 'push' && steps.release_state.outputs.exists == 'true'
-        shell: bash
-        run: |
-          echo "Release ${{ steps.release_meta.outputs.tag }} already exists, skipping publish."
-          exit 0
 
       - name: Build release assets
         if: steps.validate_version.outputs.version_matched == 'true'
@@ -130,3 +113,17 @@ jobs:
             artifacts/release/cursor-zh-cn-pack-release.json
             artifacts/release/workbench-patch-runtime-policy.json
             artifacts/release/workbench-patches.json
+
+      - name: Commit synced files after release
+        if: steps.validate_version.outputs.version_matched == 'true'
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo 'package-lock.json already in sync, nothing to commit.'
+            exit 0
+          fi
+          git commit -m "ci: 发布 ${{ steps.release_meta.outputs.tag }} 后自动同步 package-lock 版本"
+          git push origin HEAD:"${{ github.ref_name }}"
